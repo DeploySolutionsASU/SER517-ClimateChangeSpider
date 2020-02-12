@@ -13,3 +13,13 @@ The below url downloads the file that contains all the zip files of Html-rdfa da
 3. Import the html-rdfa data to the Fuseki server.
 4. Query the data using SPARQL and store the result as JSON.
 5. Provide the JSON results to store in secondary storage.(AWS)
+
+**Challenges faced**
+Here we are trying to automate the above steps through a python scripts. And the dat in these files have non Parasable characters which should
+eliminated in order to parse the content of the url.
+
+Non Parsable data means looking for the characters that are not supposed to be as part of the url. Solution is to identify a tool that has the ability to 
+identify these lines which has the non parsable characters and remove them, in order to process the content, through a script.
+
+
+
