@@ -47,7 +47,7 @@ if __name__ == '__main__':
     create_directory(downloads_path)
 
     given_url = 'http://webdatacommons.org/structureddata/2019-12/stats/how_to_get_the_data.html'
-    search_text = 'rdfa'
+    search_text = ['rdfa', 'microdata', 'embedded', 'mf-hcard']
 
     page = urllib.request.urlopen(given_url)
     soup = BeautifulSoup(page, 'html.parser')
@@ -56,14 +56,18 @@ if __name__ == '__main__':
 
     output_url = set()
     for a in soup.findAll('a', href=True):
-        if search_text in a.text:
-            index = a.get('href').index('/')
-            trim_url = 'http://webdatacommons.org/structureddata/2019-12' + a.get('href')[index:]
-            output_url.add(trim_url)
+        for find_text in search_text:
+            if find_text in a.text:
+                index = a.get('href').index('/')
+                trim_url = 'http://webdatacommons.org/structureddata/2019-12' + a.get('href')[index:]
+                output_url.add(trim_url)
 
     file_path = os.path.join(down_dir, 'urls.txt')
     for out_url in output_url:
-        urllib.request.urlretrieve(out_url, file_path)
+        with urllib.request.urlopen(out_url) as response:
+            data = response.read().decode("utf-8")
+            # converting from binary to string before writing to file
+            with open(file_path, "a+") as fp: fp.write(str(data))
 
     fileHandler = open(file_path, "r")
     Lines = fileHandler.readlines()
