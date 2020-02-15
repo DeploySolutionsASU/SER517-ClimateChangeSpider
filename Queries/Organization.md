@@ -22,4 +22,6 @@ WHERE {
                              <http://schema.org/#address> ?address;
             <http://schema.org/#tel> ?telephone}}
   }
+  FILTER(CONTAINS(str(?ID), "fire") || CONTAINS(str(?ID), "environment") || CONTAINS(str(?ID), "flood") || CONTAINS(str(?ID), "weather") || CONTAINS(str(?ID), "climate"))
 }
+LIMIT 100
