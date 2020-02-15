@@ -1,38 +1,76 @@
 import os
 import subprocess
+import time
+import uuid
+import re
 
-file_path = "C:/Yuvan/Studies/Fourth_sem/ser517/apache-jena-3.14.0/bin/riot --validate "
+from os import walk
+from Config import global_config
+from ThreadPoolManager import start_job
+from collections import defaultdict
+
+
 root_dir = os.path.abspath('..')
 root_dir = root_dir.replace('\\', '/')
-output_path = root_dir + '/data/'
+
+riot_path = global_config["riot_path"]
+command_template = riot_path + " " + "--validate" + " " + "{file_path}"
+
+temp_dir = root_dir + "/temp/"
+data_dir = "../data/"
+n_quads_extension = ".nq"
 
 
-def parse_file(file_name):
-    command = (file_path + output_path + file_name).split()
-    filePath = output_path + file_name
-    # output = run_command(command)
+def splitter(file_path, threshold=50000):
+    all_data = defaultdict(list)
+    start = time.process_time()
 
-    #Mocking the run_command function
-    error_line_nos = []
-    with open(filePath, "r") as input:
-        for lineno, line in enumerate(input):
-            if 'Error' in line:
-                error_line_nos.append(lineno)
-                break
+    with open(file_path, "r") as file:
+        data = file.readlines()
+        for i in range(0, len(data), threshold):
+            chunk = data[i:min(i + threshold, len(data))]
+            all_data[str(uuid.uuid4())] = chunk
 
-    if len(error_line_nos) == 0:
-        return
+    print("read time: ", time.process_time() - start)
+    return all_data
 
-    with open(filePath, "r") as f:
-        lines = f.readlines()
 
-    with open(filePath, "w") as f:
-        for lineno, line in enumerate(lines):
-            if lineno not in error_line_nos: #if not error line number write into file
-                f.write(line)
+def parse_file(guid, data):
+    print(guid, "started...")
+    try:
+        output_file_path = temp_dir + guid + ".nq"
 
-    parse_file(file_name)
-    print("Parsing done")
+        # write to a file for validation
+        with open(output_file_path, 'w') as file:
+            file.writelines(data)
+
+        validation_result = run_command(command_template.format(file_path=output_file_path).split())
+
+        error_line_nos = set()
+
+        for result in validation_result:
+            result = str(result)
+            print(result)
+            splits = result.split("::")
+
+            if re.search('ERROR riot', splits[0]):
+                error_line_nos.add(int(re.findall(r'[0-9]+', splits[1])[0]))
+
+        print(error_line_nos)
+
+        if len(error_line_nos) == 0:
+            print("Parsing done")
+            return True
+
+        for error_line_no in error_line_nos:
+            del data[error_line_no - 1]
+
+        parse_file(guid, data)
+    except Exception as exc:
+        print(exc)
+        return False
+    else:
+        print(guid, "done")
 
 
 def run_command(command):
@@ -44,6 +82,12 @@ def run_command(command):
 
 if __name__ == '__main__':
 
-    for filename in os.listdir(output_path):
-        parse_file(filename)
+    files_to_process = []
+    for (dir_path, dir_names, file_name) in walk(data_dir):
+        files_to_process.extend([dir_path + "/" + file for file in file_name])
         break
+    print(files_to_process)
+
+    for file_path in files_to_process:
+        if file_path.endswith(n_quads_extension):
+            start_job(splitter(file_path), parse_file, 50)
