@@ -2,33 +2,28 @@ import os
 import subprocess
 import time
 import uuid
-
-from os import walk
 import re
 
+from os import walk
+from Config import global_config
 from ThreadPoolManager import start_job
-
 from collections import defaultdict
 
 
 root_dir = os.path.abspath('..')
 root_dir = root_dir.replace('\\', '/')
-data_directory_path = root_dir + '/data/'
 
-riot_path = "/Users/aj/Developer/apache-jena-3.14.0/bin/riot"
-
+riot_path = global_config["riot_path"]
 command_template = riot_path + " " + "--validate" + " " + "{file_path}"
-
-pwd = "./"
 
 temp_dir = root_dir + "/temp/"
 data_dir = "../data/"
+n_quads_extension = ".nq"
 
 
 def splitter(file_path, threshold=50000):
     all_data = defaultdict(list)
     start = time.process_time()
-
 
     with open(file_path, "r") as file:
         data = file.readlines()
@@ -37,7 +32,6 @@ def splitter(file_path, threshold=50000):
             all_data[str(uuid.uuid4())] = chunk
 
     print("read time: ", time.process_time() - start)
-
     return all_data
 
 
@@ -49,7 +43,6 @@ def parse_file(guid, data):
         # write to a file for validation
         with open(output_file_path, 'w') as file:
             file.writelines(data)
-
 
         validation_result = run_command(command_template.format(file_path=output_file_path).split())
 
@@ -69,8 +62,8 @@ def parse_file(guid, data):
             print("Parsing done")
             return True
 
-        for erro_line_no in error_line_nos:
-            del data[erro_line_no - 1]
+        for error_line_no in error_line_nos:
+            del data[error_line_no - 1]
 
         parse_file(guid, data)
     except Exception as exc:
@@ -95,5 +88,6 @@ if __name__ == '__main__':
         break
     print(files_to_process)
 
-    for file_path in ['../data//dpef.html-embedded.nq']:
-        start_job(splitter(file_path), parse_file, 50)
+    for file_path in files_to_process:
+        if file_path.endswith(n_quads_extension):
+            start_job(splitter(file_path), parse_file, 50)
