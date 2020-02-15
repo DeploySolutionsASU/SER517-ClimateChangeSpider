@@ -30,9 +30,7 @@ def create_directory(file_path):
     try:
         os.makedirs(file_path)
     except OSError as error:
-        logging.warning(error)
-
-
+        logging.log(error)
 
 def unzip_files(eachfile, input_file):
     curr_path = root_dir +'/data'
@@ -55,14 +53,12 @@ if __name__ == '__main__':
     create_directory(downloads_path)
     create_directory(fuseki_dir_path)
 
-
     given_url = 'http://webdatacommons.org/structureddata/2019-12/stats/how_to_get_the_data.html'
     search_text = ['rdfa', 'microdata', 'embedded', 'mf-hcard']
     fuseki_url = 'http://apache.mirrors.lucidnetworks.net/jena/binaries/apache-jena-fuseki-3.14.0.zip'
 
     page = urllib.request.urlopen(given_url)
     soup = BeautifulSoup(page, 'html.parser')
-
     down_dir = root_dir + '/mainFile'
 
     output_url = set()

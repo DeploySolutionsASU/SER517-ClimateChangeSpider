@@ -8,13 +8,16 @@ from os import walk
 from Config import global_config
 from ThreadPoolManager import start_job
 from collections import defaultdict
-
+from MainScraper import create_directory
 
 root_dir = os.path.abspath('..')
 root_dir = root_dir.replace('\\', '/')
 
 riot_path = global_config["riot_path"]
 command_template = riot_path + " " + "--validate" + " " + "{file_path}"
+
+temp_folder = os.path.join(root_dir, 'temp')
+create_directory(temp_folder)
 
 temp_dir = root_dir + "/temp/"
 data_dir = "../data/"
