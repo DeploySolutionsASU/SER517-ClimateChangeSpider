@@ -30,7 +30,7 @@ def create_directory(file_path):
     try:
         os.makedirs(file_path)
     except OSError as error:
-        logging.log(error)
+        logging.warning(error)
 
 def unzip_files(eachfile, input_file):
     curr_path = root_dir +'/data'
