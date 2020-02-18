@@ -1,39 +1,22 @@
-import logging
 import os
 import urllib.request
-import wget
 import gzip
 from zipfile import ZipFile
+from Config import path_config
 
 from time import time
 from bs4 import BeautifulSoup
 
-root_dir = os.path.abspath('..')
-root_dir = root_dir.replace('\\', '/')
-output_path = root_dir + '/downloads'
-fuseki_path = root_dir + '/fuseki'
-
-def download_file(url):
-    try:
-        wget.download(url, out=output_path)
-    except Exception as e:
-        logging.error(e)
-
-def download_fuseki(fuseki_url):
-    try:
-        wget.download(fuseki_url, out=fuseki_path)
-    except Exception as e:
-        logging.error(e)
+from DownloadManager import download_file
+from HelperManager import create_directory
+from HelperManager import get_root_directory
 
 
-def create_directory(file_path):
-    try:
-        os.makedirs(file_path)
-    except OSError as error:
-        logging.warning(error)
+output_path = get_root_directory() + '/downloads'
+fuseki_path = get_root_directory + '/fuseki'
 
 def unzip_files(eachfile, input_file):
-    curr_path = root_dir +'/data'
+    curr_path = get_root_directory +'/data'
     file_name_output = input_file.split('.gz')[0] #+ '.txt'
     output_path = curr_path + '/' +file_name_output
     fp = open(output_path, "wb")
@@ -45,28 +28,28 @@ def unzip_files(eachfile, input_file):
 
 if __name__ == '__main__':
 
-    mainFile_path = os.path.join(root_dir, 'mainFile')
-    downloads_path = os.path.join(root_dir, 'downloads')
-    fuseki_dir_path = os.path.join(root_dir, 'fuseki')
+    mainFile_path = os.path.join(get_root_directory, 'mainFile')
+    downloads_path = os.path.join(get_root_directory, 'downloads')
+    fuseki_dir_path = os.path.join(get_root_directory, 'fuseki')
 
     create_directory(mainFile_path)
     create_directory(downloads_path)
     create_directory(fuseki_dir_path)
 
-    given_url = 'http://webdatacommons.org/structureddata/2019-12/stats/how_to_get_the_data.html'
+    given_url = path_config["site_url"]
     search_text = ['rdfa', 'microdata', 'embedded', 'mf-hcard']
-    fuseki_url = 'http://apache.mirrors.lucidnetworks.net/jena/binaries/apache-jena-fuseki-3.14.0.zip'
+    fuseki_url = path_config["fuseki_url"]
 
     page = urllib.request.urlopen(given_url)
     soup = BeautifulSoup(page, 'html.parser')
-    down_dir = root_dir + '/mainFile'
+    down_dir = get_root_directory + '/mainFile'
 
     output_url = set()
     for a in soup.findAll('a', href=True):
         for find_text in search_text:
             if find_text in a.text:
                 index = a.get('href').index('/')
-                trim_url = 'http://webdatacommons.org/structureddata/2019-12' + a.get('href')[index:]
+                trim_url = path_config["data_source_url"] + a.get('href')[index:]
                 output_url.add(trim_url)
 
     file_path = os.path.join(down_dir, 'urls.txt')
@@ -94,11 +77,11 @@ if __name__ == '__main__':
     start = time()
 
     for url in url_list:
-        download_file(url)
+        download_file(url, output_path)
 
     print("Time to download", time() - start)
 
-    extraction_path = os.path.join(root_dir, 'data')
+    extraction_path = os.path.join(get_root_directory, 'data')
     create_directory(extraction_path)
 
     # Read the files from the directory and unzip
@@ -111,7 +94,7 @@ if __name__ == '__main__':
             continue
 
     zip_file = os.path.join(fuseki_path, 'apache-jena-fuseki-3.14.0.zip')
-    download_fuseki(fuseki_url)
+    download_file(fuseki_url, fuseki_path)
     with ZipFile(zip_file, 'r') as zipObj:
         # Extract all the contents of zip file in current directory
         zipObj.extractall(fuseki_path)

@@ -8,18 +8,16 @@ from os import walk
 from Config import global_config
 from ThreadPoolManager import start_job
 from collections import defaultdict
-from MainScraper import create_directory
-
-root_dir = os.path.abspath('..')
-root_dir = root_dir.replace('\\', '/')
+from HelperManager import create_directory
+from HelperManager import get_root_directory
 
 riot_path = global_config["riot_path"]
 command_template = riot_path + " " + "--validate" + " " + "{file_path}"
 
-temp_folder = os.path.join(root_dir, 'temp')
+temp_folder = os.path.join(get_root_directory(), 'temp')
 create_directory(temp_folder)
 
-temp_dir = root_dir + "/temp/"
+temp_dir = get_root_directory() + "/temp/"
 data_dir = "../data/"
 n_quads_extension = ".nq"
 
