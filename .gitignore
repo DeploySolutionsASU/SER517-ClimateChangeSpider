@@ -12,6 +12,7 @@ Thumbs.db
 data/
 dataSource/
 downloads/
+server/
 
 # Vagrant
 .vagrant/
