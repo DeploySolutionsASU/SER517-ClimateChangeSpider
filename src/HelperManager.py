@@ -24,7 +24,8 @@ def folders_creation():
     data_source_path = os.path.join(get_root_directory(), path_config["data_source"])
     downloads_path = os.path.join(get_root_directory(), path_config["download_folder"])
     server_dir_path = os.path.join(get_root_directory(), path_config["server_folder"])
-
+    extraction_path = os.path.join(get_root_directory(), path_config["extract_folder"])
+    create_directory(extraction_path)
     create_directory(data_source_path)
     create_directory(downloads_path)
     create_directory(server_dir_path)

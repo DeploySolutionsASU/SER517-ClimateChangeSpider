@@ -7,8 +7,8 @@ import logging
 from bs4 import BeautifulSoup
 
 from DownloadManager import download_file, download_from_list
-from FileUtilities import unzip_files
-from HelperManager import create_directory, folders_creation
+from FileUtilities import read_files_to_unzip
+from HelperManager import folders_creation
 from HelperManager import get_root_directory
 
 download_path = get_root_directory() + "/" + path_config["download_folder"]
@@ -67,20 +67,8 @@ if __name__ == '__main__':
     url_list = data_scraper(search_text, down_source_dir)
     # Download urls from the list
     download_from_list(url_list, download_path)
-
-    extraction_path = os.path.join(get_root_directory(), path_config["extract_folder"])
-    create_directory(extraction_path)
-
-    # Read the files from the directory and unzip
-    for filename in os.listdir(download_path):
-        if filename.endswith(".gz"):
-            file = os.path.join(download_path, filename)
-            curr_path = get_root_directory() + "/" + path_config["extract_folder"]
-            file_name_output = filename.split('.gz')[0]
-            download_path = curr_path + '/' + file_name_output
-            unzip_files(file, download_path)
-        else:
-            continue
+    # read files to unzip
+    read_files_to_unzip(download_path)
 
     zip_file = os.path.join(server_path, path_config["server_name"])
     download_file(server_url, server_path)
