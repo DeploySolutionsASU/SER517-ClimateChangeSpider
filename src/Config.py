@@ -2,6 +2,10 @@ global_config = {
     "riot_path": ""
 }
 
+#For windows provide apache jena riot path from bat folder
+#D:/apache-jena-3.14.0/apache-jena-3.14.0/bat/riot.bat
+
+#For Mac provide it from bin folder
 # riot_path: "/Users/aj/Developer/apache-jena-3.14.0/bin/riot"
 
 path_config = {
