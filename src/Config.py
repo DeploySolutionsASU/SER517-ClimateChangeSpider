@@ -2,10 +2,10 @@ global_config = {
     "riot_path": ""
 }
 
-#For windows provide apache jena riot path from bat folder
-#D:/apache-jena-3.14.0/apache-jena-3.14.0/bat/riot.bat
+# For windows provide apache jena riot path from bat folder
+# D:/apache-jena-3.14.0/apache-jena-3.14.0/bat/riot.bat
 
-#For Mac provide it from bin folder
+# For Mac provide it from bin folder
 # riot_path: "/Users/aj/Developer/apache-jena-3.14.0/bin/riot"
 
 path_config = {
@@ -16,7 +16,9 @@ path_config = {
     "extract_folder": "data",
     "download_folder": "downloads",
     "server_folder": "server",
-    "data_source": "dataSource"
+    "data_source": "dataSource",
+    "csv_folder": "csv",
+    "csv_output": "query_result.csv"
 }
 
 data_formats_config = {
