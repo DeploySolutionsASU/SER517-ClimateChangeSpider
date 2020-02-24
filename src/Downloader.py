@@ -12,8 +12,6 @@ from HelperManager import folders_creation
 from HelperManager import get_root_directory
 
 download_path = get_root_directory() + "/" + path_config["download_folder"]
-server_path = get_root_directory() + "/" + path_config["server_folder"]
-
 
 def data_scraper(search_parameter, download_dir):
     try:
@@ -57,7 +55,6 @@ if __name__ == '__main__':
     folders_creation()
     given_url = path_config["site_url"]
     search_text = data_formats_config["search_text"]
-    server_url = path_config["server_url"]
 
     page = urllib.request.urlopen(given_url)
     soup = BeautifulSoup(page, 'html.parser')
@@ -69,9 +66,3 @@ if __name__ == '__main__':
     download_from_list(url_list, download_path)
     # read files to unzip
     read_files_to_unzip(download_path)
-
-    zip_file = os.path.join(server_path, path_config["server_name"])
-    download_file(server_url, server_path)
-    with ZipFile(zip_file, 'r') as zipObj:
-        # Extract all the contents of zip file in current directory
-        zipObj.extractall(server_path)
