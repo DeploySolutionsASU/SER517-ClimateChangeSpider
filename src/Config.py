@@ -20,7 +20,16 @@ path_config = {
     "server_folder": "server",
     "data_source": "dataSource",
     "csv_folder": "csv",
-    "csv_output": "query_result.csv"
+    "data_set_name": "test_data_set"
+}
+
+query_config = {
+    "keywords": ['Climate Change', 'Climate breakdown', 'Flooding', 'Flood', 'sea level rise', 'deluge rain event',
+                 'ocean solidification', 'natural disaster', 'winter storm', 'drought', 'ice storm', 'tornado', 'hail',
+                 'bushfire', 'wildfire', 'waves', 'heat wave', 'cold wave', 'hurricane', 'earthquake', 'tsunami',
+                 'landslide', 'Storm surge', 'coastal erosion', 'ice dam', 'permafrost erosion', 'permafrost melt'],
+    "query_types": ['Article', 'Event', 'Organization', 'Website']
+
 }
 
 data_formats_config = {
@@ -142,4 +151,3 @@ WHERE {
             <http://schema.org/url> ?url.}}
   }
   """
-
