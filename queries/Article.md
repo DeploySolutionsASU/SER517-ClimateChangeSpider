@@ -1,5 +1,5 @@
 PREFIX prefix: <http://prefix.cc/>
-SELECT distinct ?subject ?main_page ?part_of ?url ?image ?title ?author ?headline ?publisher ?date_published ?date_modified ?comment 
+SELECT distinct ?g ?main_page ?part_of ?url ?image ?title ?author ?headline ?publisher ?date_published ?date_modified ?comment 
 WHERE { 
   GRAPH ?g{
   {{ ?subject <http://opengraphprotocol.org/schema/type> ?object;
@@ -49,6 +49,6 @@ WHERE {
            <http://schema.org/isPartOf> ?part_of;
             <http://schema.org/mainEntityOfPage> ?main_page.}}
   }
-  FILTER(CONTAINS(str(?subject), "environment") || CONTAINS(str(?subject), "climate") || CONTAINS(str(?subject), "weather") || CONTAINS(str(?subject), "flood") || CONTAINS(str(?subject), "fire"))
+  FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
 }
 LIMIT 2000

@@ -1,5 +1,5 @@
 PREFIX prefix: <http://prefix.cc/>
-SELECT distinct ?subject ?object ?name ?url 
+SELECT distinct ?g ?object ?name ?url 
 WHERE { 
   GRAPH ?g{
   { {?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
@@ -24,7 +24,7 @@ UNION{
              ?subject <http://schema.org/name> ?name;
             <http://schema.org/url> ?url.}}
   }
-  FILTER(CONTAINS(str(?subject), "environment") || CONTAINS(str(?subject), "climate") || CONTAINS(str(?subject), "weather") || CONTAINS(str(?subject), "flood") || CONTAINS(str(?subject), "fire"))
+  FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
 }
 LIMIT 100
 
