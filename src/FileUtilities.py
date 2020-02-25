@@ -26,8 +26,8 @@ def read_files_to_unzip(download_path):
             file = os.path.join(download_path, filename)
             curr_path = get_root_directory() + "/" + path_config["extract_folder"]
             file_name_output = filename.split('.gz')[0]
-            download_path = curr_path + '/' + file_name_output
-            unzip_file(file, download_path)
+            curr_path = curr_path + '/' + file_name_output
+            unzip_file(file, curr_path)
         else:
             continue
     print("Unzip end")
