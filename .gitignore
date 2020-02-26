@@ -13,6 +13,8 @@ data/
 dataSource/
 downloads/
 server/
+csv/
+temp/
 
 # Vagrant
 .vagrant/

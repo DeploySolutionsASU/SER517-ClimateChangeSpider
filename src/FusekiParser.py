@@ -5,7 +5,7 @@ import uuid
 import re
 
 from os import walk
-from Config import global_config
+from Config import global_config, path_config
 from ThreadPoolManager import start_job
 from collections import defaultdict
 from HelperManager import create_directory
@@ -21,7 +21,7 @@ create_directory(temp_folder)
 temp_dir = get_root_directory() + "/temp/"
 data_dir = "../data/"
 n_quads_extension = ".nq"
-data_set_name = "test_data_set"
+data_set_name = path_config["data_set_name"]
 
 
 def splitter(file_path, threshold=50000):

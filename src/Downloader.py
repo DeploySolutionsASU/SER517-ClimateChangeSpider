@@ -13,6 +13,7 @@ from HelperManager import get_root_directory
 
 download_path = get_root_directory() + "/" + path_config["download_folder"]
 
+
 def data_scraper(search_parameter, download_dir):
     try:
         print("Data scraper start")
