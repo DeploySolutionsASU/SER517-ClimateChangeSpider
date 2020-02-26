@@ -39,115 +39,180 @@ data_formats_config = {
 
 
 class BaseQuery(Enum):
-    Article = """PREFIX prefix: <http://prefix.cc/>
-SELECT distinct ?ID ?main_page ?part_of ?url ?image ?title ?author ?headline ?publisher ?date_published ?date_modified ?comment
-WHERE {
-  GRAPH ?ID{
-  { ?subject <http://opengraphprotocol.org/schema/type> "article";
-             OPTIONAL{
-             ?subject <http://opengraphprotocol.org/schema/url> ?url;
-            <http://opengraphprotocol.org/schema/image> ?image;
-            <http://opengraphprotocol.org/schema/title> ?title.}} UNION
-   { ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article>;
-              OPTIONAL{
-             ?subject <http://schema.org/Article/author> ?author;
-            <http://schema.org/Article/dateModified> ?date_modified;
-            <http://schema.org/Article/datePublished> ?date_published;
-            <http://schema.org/Article/publisher> ?publisher;
-            <http://schema.org/Article/articleSection> ?article_section;
-            <http://schema.org/Article/commentCount> ?comment;
-            <http://schema.org/Article/headline> ?headline;
-           <http://schema.org/Article/isPartOf> ?part_of;
-            <http://schema.org/Article/mainEntityOfPage> ?main_page.}} UNION
-    {?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article>;
-              OPTIONAL{
-             ?subject <http://schema.org/author> ?author;
-            <http://schema.org/dateModified> ?date_modified;
-            <http://schema.org/datePublished> ?date_published;
-            <http://schema.org/publisher> ?publisher;
-            <http://schema.org/articleSection> ?article_section;
-            <http://schema.org/commentCount> ?comment;
-            <http://schema.org/headline> ?headline;
-           <http://schema.org/isPartOf> ?part_of;
-            <http://schema.org/mainEntityOfPage> ?main_page.}}
-  }
-  """
-
-    Event = """SELECT DISTINCT ?name ?url (CONCAT(?street_address, ", " ,?addressRegion, ", " ,?locality, ", " ,?country ) AS ?some)
-WHERE
-{
-  GRAPH ?g{
-{ ?subject ?predicate ?object;
-        <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Event>;
-        <http://schema.org/location> ?location;	
-        <http://schema.org/name> ?name;
-        <http://schema.org/url> ?url.
-    
-?location  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place>;
-        <http://schema.org/name> ?place_name;
-        <http://schema.org/address> ?address.
-    
-?address <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress>;
-    <http://schema.org/streetAddress> ?street_address;
-    <http://schema.org/addressRegion> ?addressRegion;
-    <http://schema.org/addressRegion> ?addressRegion;
-    <http://schema.org/addressLocality> ?locality;
-    <http://schema.org/addressCountry> ?country.} UNION
-{ ?subject ?predicate ?object;
-    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Event>;
-    <http://schema.org/location> ?location;	
-    <http://schema.org/name> ?name;
-    <http://schema.org/url> ?url.
-    
-?location  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place>;
-    <http://schema.org/name> ?place_name;
-    <http://schema.org/address> ?address.
-    
-?address <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress>;
-    <http://schema.org/streetAddress> ?street_address;
-    <http://schema.org/addressRegion> ?addressRegion;
-    <http://schema.org/addressLocality> ?locality;
-    <http://schema.org/addressCountry> ?country.} 
-  }
-  """
-
-    Organization = """PREFIX prefix: <http://prefix.cc/>
-    SELECT distinct ?g ?url ?name ?address ?telephone ?sameAs ?Logo ?isBasedOnUrl ?description
+    Article = """PREFIX prefix: http://prefix.cc/ 
+    SELECT distinct ?g ?main_page ?part_of ?url ?image ?title ?author ?headline ?publisher ?date_published ?date_modified ?comment 
     WHERE { 
-      GRAPH ?g{
-      { ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdf.data-vocabulary.org/#Organization>;
-                 OPTIONAL{?subject <http://rdf.data-vocabulary.org/#url> ?url;
-                 <http://rdf.data-vocabulary.org/#name> ?name;
-                                 <http://rdf.data-vocabulary.org/#address> ?address;
-                                 <http://rdf.data-vocabulary.org/#tel> ?telephone}} UNION 		
-       { ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org.408ss.com/Organization>;
-                  OPTIONAL{?subject <http://schema.org.408ss.com/#url> ?url;
-                 <http://schema.org.408ss.com/#name> ?name;
-                                 <http://schema.org.408ss.com/#address> ?address;
-                <http://schema.org.408ss.com/#tel> ?telephone;
-                <http://schema.org/Organization/sameAs> ?sameAs;
-                <https://schema.org/Organization/logo> ?Logo;
-                <http://schema.org.408ss.com/Organization/isBasedOnUrl> ?isBasedOnUrl;
-                <http://schema.org/Organization/description> ?description}} UNION
-        { ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Organization>;
-                  OPTIONAL{?subject <http://schema.org/#url> ?url;
-                 <http://schema.org/#name> ?name;
-                                 <http://schema.org/#address> ?address;
-                <http://schema.org/#tel> ?telephone}}
+      GRAPH ?g
+      { 
+        {
+          { ?subject http://opengraphprotocol.org/schema/type ?object; 
+          FILTER(CONTAINS(str(?object), "Article")) } UNION
+          { ?subject http://opengraphprotocol.org/schema/type ?object; 
+          FILTER(CONTAINS(lcase(str(?object)), "article")) 
+          }
+
+         OPTIONAL{
+         ?subject <http://opengraphprotocol.org/schema/url> ?url;
+        <http://opengraphprotocol.org/schema/image> ?image;
+        <http://opengraphprotocol.org/schema/title> ?title.}} UNION 		
+    { 
+      {
+        ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+        FILTER(CONTAINS(str(?object), "Article")) } UNION
+        { 
+          ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+          FILTER(CONTAINS(lcase(str(?object)), "article")) } 
+          
+          OPTIONAL{ 
+            ?subject http://schema.org/Article/author ?author; 
+            http://schema.org/Article/dateModified ?date_modified; 
+            http://schema.org/Article/datePublished ?date_published; 
+            http://schema.org/Article/publisher ?publisher; 
+            http://schema.org/Article/articleSection ?article_section; 
+            http://schema.org/Article/commentCount ?comment; 
+            http://schema.org/Article/headline ?headline; 
+            http://schema.org/Article/isPartOf ?part_of; 
+            http://schema.org/Article/mainEntityOfPage ?main_page.}} UNION 
+            
+            {
+              {
+                ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://schema.org/Article; 
+                FILTER(CONTAINS(str(?object), "Article")) } UNION
+                { 
+                  ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                  FILTER(CONTAINS(lcase(str(?object)), "article")) } 
+                  OPTIONAL{ 
+                    ?subject http://schema.org/author ?author; 
+                    http://schema.org/dateModified ?date_modified; 
+                    http://schema.org/datePublished ?date_published; 
+                    http://schema.org/publisher ?publisher; 
+                    http://schema.org/articleSection ?article_section; 
+                    http://schema.org/commentCount ?comment; 
+                    http://schema.org/headline ?headline; 
+                    http://schema.org/isPartOf ?part_of; 
+                    http://schema.org/mainEntityOfPage ?main_page.}}
+  }
+  """
+
+    Event = """SELECT DISTINCT ?name ?url (CONCAT(?street_address, ", " ,?addressRegion, ", " ,?locality, ", " ,?country ) AS ?some) 
+    WHERE { 
+      GRAPH ?ID{ 
+        { 
+          ?subject ?predicate ?object; 
+          http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://schema.org/Event; 
+          http://schema.org/location ?location; 
+          http://schema.org/name ?name; 
+          http://schema.org/url ?url.
+
+?location  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place>;
+           <http://schema.org/name> ?place_name;
+			<http://schema.org/address> ?address.
+
+?address <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress>;
+ 	<http://schema.org/streetAddress> ?street_address;
+	<http://schema.org/addressRegion> ?addressRegion;
+ 	<http://schema.org/addressLocality> ?locality;
+  <http://schema.org/addressCountry> ?country.} UNION
+{ ?subject ?predicate ?object; 
+  http://www.w3.org/1999/02/22-rdf-syntax-ns#type http://schema.org/Event; 
+  http://schema.org/location ?location; 
+  http://schema.org/name ?name; http://schema.org/url ?url.
+
+?location  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place>;
+           <http://schema.org/name> ?place_name;
+			<http://schema.org/address> ?address.
+
+?address <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress>;
+ 	<http://schema.org/streetAddress> ?street_address;
+	<http://schema.org/addressRegion> ?addressRegion;
+ 	<http://schema.org/addressLocality> ?locality;
+  <http://schema.org/addressCountry> ?country.} 
+  }
+  """
+
+    Organization = """PREFIX prefix: http://prefix.cc/ 
+    SELECT distinct ?ID ?url ?name ?address ?telephone ?sameAs ?Logo ?isBasedOnUrl ?description 
+    WHERE { 
+      GRAPH ?ID{ 
+        {
+          { 
+            ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+            FILTER(CONTAINS(str(?object), "Organization")) } UNION
+            { 
+              ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+              FILTER(CONTAINS(lcase(str(?object)), "organization")) } 
+              OPTIONAL{
+                ?subject http://rdf.data-vocabulary.org/#url ?url; 
+                http://rdf.data-vocabulary.org/#name ?name; 
+                http://rdf.data-vocabulary.org/#address ?address; 
+                http://rdf.data-vocabulary.org/#tel ?telephone}} UNION 
+                
+                { 
+                  {
+                    ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                    FILTER(CONTAINS(str(?object), "Organization")) } UNION
+                    { 
+                      ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                      FILTER(CONTAINS(lcase(str(?object)), "organization")) } 
+                      OPTIONAL{
+                        ?subject http://schema.org.408ss.com/#url ?url; 
+                        http://schema.org.408ss.com/#name ?name; 
+                        http://schema.org.408ss.com/#address ?address; 
+                        http://schema.org.408ss.com/#tel ?telephone; 
+                        http://schema.org/Organization/sameAs ?sameAs; 
+                        https://schema.org/Organization/logo ?Logo; 
+                        http://schema.org.408ss.com/Organization/isBasedOnUrl ?isBasedOnUrl; 
+                        http://schema.org/Organization/description ?description}} UNION 
+                        { 
+                          {
+                            ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                            FILTER(CONTAINS(str(?object), "Organization")) } UNION
+                            { 
+                              ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                              FILTER(CONTAINS(lcase(str(?object)), "organization")) } 
+                              OPTIONAL{
+                                ?subject http://schema.org/#url ?url; 
+                                http://schema.org/#name ?name; 
+                                http://schema.org/#address ?address; 
+                                http://schema.org/#tel ?telephone}}UNION 
+                                { 
+                                  {
+                                    ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                                    FILTER(CONTAINS(str(?object), "Organization")) } UNION
+                                    { 
+                                      ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                                      FILTER(CONTAINS(lcase(str(?object)), "organization")) } 
+                                      OPTIONAL{
+                                        ?subject http://www.w3.org/2006/vcard/ns#organization-name ?name; 
+                                        http://www.w3.org/2006/vcard/ns#adr ?address; 
+                                        http://www.w3.org/2006/vcard/ns#tel ?telephone}} 
       }
       """
 
-    Website = """PREFIX prefix: <http://prefix.cc/>
-    SELECT distinct ?ID ?name ?url 
+    Website = """PREFIX prefix: http://prefix.cc/ 
+    SELECT distinct ?g ?object ?name ?url 
     WHERE { 
-      GRAPH ?ID{
-      { ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/WebSite>;
-                  OPTIONAL{
-                 ?subject <http://schema.org/WebSite/name> ?name;
-                <http://schema.org/WebSite/url> ?url.}} UNION
-        {?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article>;
-                  OPTIONAL{
-                 ?subject <http://schema.org/name> ?name;
-                <http://schema.org/url> ?url.}}
+      GRAPH ?g{ 
+        { 
+          {
+            ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+            FILTER(CONTAINS(str(?object), "WebSite")) } UNION
+            { 
+              ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+              FILTER(CONTAINS(lcase(str(?object)), "website")) } 
+              OPTIONAL{ 
+                ?subject http://schema.org/WebSite/name ?name; 
+                http://schema.org/WebSite/url ?url.}} UNION 
+                {
+                  {
+                    ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                    FILTER(CONTAINS(str(?object), "WebSite")) } UNION
+                    { 
+                      ?subject http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?object; 
+                      FILTER(CONTAINS(lcase(str(?object)), "website")) }
+
+          OPTIONAL{
+         ?subject <http://schema.org/name> ?name;
+        <http://schema.org/url> ?url.}}
       }
       """
