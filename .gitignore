@@ -8,6 +8,14 @@
 # Windows
 Thumbs.db
 
+# Folders
+data/
+dataSource/
+downloads/
+server/
+csv/
+temp/
+
 # Vagrant
 .vagrant/
 

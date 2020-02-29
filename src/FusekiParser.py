@@ -5,23 +5,23 @@ import uuid
 import re
 
 from os import walk
-from Config import global_config
+from Config import global_config, path_config
 from ThreadPoolManager import start_job
 from collections import defaultdict
-from MainScraper import create_directory
-
-root_dir = os.path.abspath('..')
-root_dir = root_dir.replace('\\', '/')
+from HelperManager import create_directory
+from HelperManager import get_root_directory
+from FusekiImporter import import_data_to_fuseki
 
 riot_path = global_config["riot_path"]
 command_template = riot_path + " " + "--validate" + " " + "{file_path}"
 
-temp_folder = os.path.join(root_dir, 'temp')
+temp_folder = os.path.join(get_root_directory(), 'temp')
 create_directory(temp_folder)
 
-temp_dir = root_dir + "/temp/"
+temp_dir = get_root_directory() + "/temp/"
 data_dir = "../data/"
 n_quads_extension = ".nq"
+data_set_name = path_config["data_set_name"]
 
 
 def splitter(file_path, threshold=50000):
@@ -53,7 +53,6 @@ def parse_file(guid, data):
 
         for result in validation_result:
             result = str(result)
-            print(result)
             splits = result.split("::")
 
             if re.search('ERROR riot', splits[0]):
@@ -62,7 +61,7 @@ def parse_file(guid, data):
         print(error_line_nos)
 
         if len(error_line_nos) == 0:
-            print("Parsing done")
+            import_data_to_fuseki(data_set_name, output_file_path)
             return True
 
         for error_line_no in error_line_nos:
@@ -89,7 +88,7 @@ if __name__ == '__main__':
     for (dir_path, dir_names, file_name) in walk(data_dir):
         files_to_process.extend([dir_path + "/" + file for file in file_name])
         break
-    print(files_to_process)
+    print("Files to Process: ", files_to_process)
 
     for file_path in files_to_process:
         if file_path.endswith(n_quads_extension):
