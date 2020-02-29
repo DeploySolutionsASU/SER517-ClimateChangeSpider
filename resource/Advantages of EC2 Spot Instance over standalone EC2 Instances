@@ -1,0 +1,16 @@
+*Case Study:*
+As we are doing big data processing in a stateless, non time-sensitive, fault-tolerant fashion there is no
+hard requirement for us to have a server allocated for our project continuously(at all times) for the downloading/cleaning phase.
+
+
+*what is an EC2 spot instance?*
+Spot instances are unused EC2 instances in the Amazon Cloud. Since they are unused Amazon is giving those instance at a reduced cost.
+
+
+*How EC2 spot instances work?*
+Spot instances are allocated dynamically by Amazon based on the availablilty. Those instances can also be reclaimed by Amazon with a 
+2 minute warning. 
+
+*Benefits:*
+EC2 spot instances are 90% cheap when compared to the on-demand EC2 instance.
+Comes with all the integration options such as Auto Scaling, EMR and ECS. 
