@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Climate Change Spider</title>
+    <style>
+        .bg-color {
+            background-color: black
+        }
+
+        .title {
+            color: whitesmoke;
+            padding:10px
+        }
+
+        .mr-left {
+            margin-left: 30%
+        }
+        .searchText{
+            width: 50%
+        }
+        .multiSelect {
+            color: #000!important;
+            background-color: #f1f1f1!important;
+        }
+        .sideBar {
+            height: 100%;
+            width: 200px;
+            background-color: #fff;
+            position: fixed!important;
+            z-index: 1;
+            overflow: auto;
+        }
+        .left-menu {
+            position: fixed;
+            top: 0;
+            padding-top: 175px;
+            padding-bottom: 0;
+            height: 100%;
+            width: 220px;
+            background-color: transparent;
+        }
+
+        .left-menu-inner {
+            height: 100%;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="container sticky-top">
+    <div class="bg-color">
+         <h2 class="text-center title">Climate Change Spider</h2>
+    </div>
+    <div class="row mt-5 mr-left">
+        <input type="text" placeholder="Enter a keyword to search" class="searchText"/>
+        <button class="searchBtn btn btn-outline-dark ml-2">Search</button>
+    </div>
+    <hr>
+</div>
+
+<div class="container">
+    <div class="sideBar">
+        <div class="left-menu">
+            <!-- Add multiple select list view here -->
+            <h6>Choose from list of keywords</h6>
+            <div class="left-menu-inner">
+                 <div class="multiSelect">
+                    <ul class="list-unstyled">
+                        <li> Add multi select view here</li>
+                        <li> keyword1</li>
+                        <li> keyword2 </li>
+                        <li> keyword3 </li>
+                    </ul>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mr-left">
+    <!-- Add search result in table format -->
+    Page results
+</div>
+</body>
+</html>
