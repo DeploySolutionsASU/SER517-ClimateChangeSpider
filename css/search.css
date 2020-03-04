@@ -44,8 +44,8 @@
         }
 
         .searchLevel {
-            padding-bottom: 100px;
-            height: 100%;
-            width: 100px;s
-            
+            position: absolute;
+            right: 0px;
+            width: 300px;
+            padding: 10px;
         }
