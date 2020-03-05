@@ -42,3 +42,10 @@
             overflow-x: hidden;
             padding-top: 20px;
         }
+
+        .searchLevel {
+            position: absolute;
+            right: 0px;
+            width: 300px;
+            padding: 10px;
+        }
