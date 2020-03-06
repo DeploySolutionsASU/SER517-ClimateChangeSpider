@@ -9,44 +9,68 @@
     <title>Climate Change Spider</title>
 </head>
 <body>
-<div class="container sticky-top">
+<div class="sticky-top">
     <div class="bg-color">
          <h2 class="text-center title">Climate Change Spider</h2>
     </div>
-    <div class="row mt-5 mr-left">
-        <input type="text" placeholder="Enter a keyword to search" class="searchText"/>
-        <button class="searchBtn btn btn-outline-dark ml-2">Search</button>
+    <div class="descriptionCls">
+        <p> Prototype search application to index climate change and environmental websites using structured metadata
+        </p>
+
     </div>
+<!--    <div class="row mt-5 mr-left">-->
+<!--        <input type="text" placeholder="Enter a keyword to search" class="searchText"/>-->
+<!--        <button class="searchBtn btn btn-outline-dark ml-2">Search</button>-->
+<!--    </div>-->
     <hr>
 </div>
-
-<div class="container">
-    <div class="sideBar">
-        <div class="left-menu">
-            <!-- Add multiple select list view here -->
-            <h6>Choose from list of keywords</h6>
-            <div class="left-menu-inner">
-                 <div class="multiSelect">
-                    <ul class="list-unstyled">
-                        <li> Add multi select view here</li>
-                        <li> keyword1</li>
-                        <li> keyword2 </li>
-                        <li> keyword3 </li>
-                    </ul>
-                 </div>
+<div>
+<div class="row">
+    <div class="col-md-4">
+        <div>
+            <div class="sideBar">
+                <div class="left-menu">
+                    <h6>Choose from list of keywords</h6>
+                    <div class="left-menu-inner">
+                         <div class="multiSelect">
+                            <ul class="list-unstyled">
+                                <li> Climate Change </li>
+                                <li> Climate breakdown </li>
+                                <li> Flooding </li>
+                                <li> Flood </li>
+                                <li> sea level rise </li>
+                                <li> deluge rain event </li>
+                                <li> ocean solidification </li>
+                                <li> natural disaster </li>
+                                <li> winter storm </li>
+                                <li> drought </li>
+                                <li> ice storm </li>
+                                <li> tornado </li>
+                                <li> hail </li>
+                                <li> bushfire </li>
+                                <li> wildfire </li>
+                                <li> waves </li>
+                                <li> heat wave </li>
+                                <li> cold wave </li>
+                                <li> hurricane </li>
+                                <li> earthquake </li>
+                                <li> tsunami </li>
+                                <li> landslide </li>
+                                <li> Storm surge </li>
+                                <li> coastal erosion </li>
+                                <li> ice dam </li>
+                                <li> permafrost erosion </li>
+                                <li> permafrost melt </li>
+                            </ul>
+                         </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-<div class="container mr-left">
-    <!-- Add search result in table format -->
-    Page results
-</div>
 
-<div class="container searchLevel"> 
+    <div class="searchLevel">
     <div class="dropdown">
-        <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Search level
+        <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false"> level
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
           <a class="dropdown-item" href="#">Article</a>
@@ -54,7 +78,26 @@
           <a class="dropdown-item" href="#">Organization</a>
           <a class="dropdown-item" href="#">Website</a>
         </div>
+
+         <button class="searchBtn btn btn-outline-dark ml-2">Search</button>
       </div>
+
+</div>
+</div>
+    </div>
+
+     <div class="col-md-6">
+        <div>
+            <!-- Add search result in table format -->
+            Page results
+        </div>
+    </div>
+    <div class="col-md-1">
+         <button class="resultBtn btn btn-outline-dark ml-2">Result</button>
+    </div>
+
+</div>
+
 </div>
 </body>
 </html>
