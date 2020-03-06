@@ -1,8 +1,35 @@
     .bg-color {
-        background-color: black
+        background-color: #f0f4c3;
     }
+    
+    body {
+        position: relative;
+        background-color: #f0f4c3;
+      }
+  
+      table {
+        border: 1px solid black;
+  
+        table-layout: fixed;
+        width: 200px;
+      }
+  
+      th,
+      td {
+        border: 1px solid black;
+        width: 100px;
+        overflow: hidden;
+      }
+  
+      #section1 {
+        padding-top: 50px;
+        height: auto;
+        color: rgba(14, 13, 13, 0.808);
+        background-color: #f0f4c3;
+      }
+  
 
-    .title {
+    /* .title {
         color: whitesmoke;
         padding:10px
     }
@@ -52,4 +79,4 @@
         margin-left: 22%;
         padding:30px;
         background-color: #f8f9fa;
-    }
+    }  */
