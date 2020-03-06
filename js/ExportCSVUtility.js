@@ -1,19 +1,11 @@
 function convertToCSV(objArray) {
-    var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-    var str = '';
+    var csv = "";
+    objArray.forEach(function (row) {
+        csv += row.join(',');
+        csv += "\n";
+    });
 
-    for (var i = 0; i < array.length; i++) {
-        var line = '';
-        for (var index in array[i]) {
-            if (line != '') line += ','
-
-            line += array[i][index];
-        }
-
-        str += line + '\r\n';
-    }
-
-    return str;
+    return csv;
 }
 
 //hardcoded the response for testing
@@ -39,46 +31,38 @@ var response = {
 
 
 function getHeaders(jsonObject) {
-   var headers = jsonObject["head"];
-   //console.log(headers)
+   headers =JSON.parse(JSON.stringify(jsonObject)).head.vars;
    return headers
-
 }
 
-//Parsing of the response
+
 function getItems(headers, response) {
-	rows = []
-  for(var r in  response["results"]["bindings"]){
-    row_data = {}
-    row_item_json = response["results"]["bindings"][r]
-    row_item_json = JSON.stringify(row_item_json)
-    for(var h in headers.vars) {
-    header_name = JSON.stringify(headers.vars[h])
-     if(JSON.stringify(row_item_json[header_name]) != null){
-       console.log(row_item_json[header_name]["value"])
-       row_data[header_name] = JSON.stringify(row_item_json[header_name]["value"])
-     } else {
-       console.log("inv")
-     }
-
-    }
-    console.log(row_data)
-    rows.push(row_data)
-
-  }
+	var resultList = []
+	//safest way to parse a JSON
+	var jsonData=JSON.parse(JSON.stringify(response));
+	//head variable anyway a list.
+	var headList = jsonData.head.vars;
+    resultList.push(headList);
+	//started parsing
+	for(x in jsonData.results.bindings){
+		var bindingData = jsonData.results.bindings[x];
+        var row = new Array(headList.length);
+		for(var key in bindingData){
+			//if element exists in head variable list
+			if(headList.includes(key)){
+				//updating row with binding value
+                row[headList.indexOf(key)]=bindingData[key].value;
+			}
+		}
+        resultList.push(row);
+	}
+	return resultList;
 }
 
 
-function exportCSVFile(headers, items, fileTitle) {
-    if (headers) {
-        items.unshift(headers);
-    }
+function exportCSVFile(items, fileTitle) {
 
-    // Convert Object to JSON
-    var jsonObject = JSON.stringify(items);
-
-    var csv = this.convertToCSV(jsonObject);
-
+    var csv = this.convertToCSV(items);
     var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
 
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -100,3 +84,11 @@ function exportCSVFile(headers, items, fileTitle) {
 }
 
 
+function main() {
+
+var fileTitle = 'CSV';
+headers = getHeaders(response)
+exportCSVFile(getItems(headers, response), "fileTitle");
+}
+
+//main()
