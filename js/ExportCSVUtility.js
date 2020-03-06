@@ -44,3 +44,28 @@ function getHeaders(jsonObject) {
    return headers
 
 }
+
+
+
+//Parsing of the response
+function getItems(headers, response) {
+	rows = []
+  for(var r in  response["results"]["bindings"]){
+    row_data = {}
+    row_item_json = response["results"]["bindings"][r]
+    row_item_json = JSON.stringify(row_item_json)
+    for(var h in headers.vars) {
+    header_name = JSON.stringify(headers.vars[h])
+     if(JSON.stringify(row_item_json[header_name]) != null){
+       console.log(row_item_json[header_name]["value"])
+       row_data[header_name] = JSON.stringify(row_item_json[header_name]["value"])
+     } else {
+       console.log("inv")
+     }
+
+    }
+    console.log(row_data)
+    rows.push(row_data)
+
+  }
+}
