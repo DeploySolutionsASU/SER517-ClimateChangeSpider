@@ -39,8 +39,6 @@
     .left-menu-inner {
         height: 75%;
         width: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
         padding-top: 20px;
     }
 
