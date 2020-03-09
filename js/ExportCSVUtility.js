@@ -86,7 +86,7 @@ function exportCSVFile(items, fileTitle) {
 
 function main() {
 
-var fileTitle = 'CSV';
+var fileTitle = 'Data';
 headers = getHeaders(response)
 exportCSVFile(getItems(headers, response), "fileTitle");
 }
