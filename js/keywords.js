@@ -1,9 +1,11 @@
 $(document).ready(function () {
-    var words = ['Climate Change', 'Climate breakdown', 'Flooding', 'Flood', 'sea level rise', 'deluge rain event',
-    'ocean solidification', 'natural disaster', 'winter storm', 'drought', 'ice storm', 'tornado', 'hail',
-    'bushfire', 'wildfire', 'waves', 'heat wave', 'cold wave', 'hurricane', 'earthquake', 'tsunami',
-    'landslide', 'Storm surge', 'coastal erosion', 'ice dam', 'permafrost erosion', 'permafrost melt'];
-
+    const url = 'http://www.mocky.io/v2/5e67e73e3100005c00230e29';
+    var words = [];
+    $.getJSON(url, function(data){
+            for(var i = 0; i < data['keywords'].length; i++){
+                words.push(data['keywords'][i]);
+            }
+    console.log(words);
     keywords = document.getElementById("keywords");
 
     for (var i = 0; i < words.length; i++){
@@ -11,4 +13,6 @@ $(document).ready(function () {
         newKeyWord.innerHTML = words[i];
         keywords.appendChild(newKeyWord);   
     }
+    });
+    
 });
