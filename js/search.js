@@ -4,14 +4,8 @@ var queryResults = {}
 
 $(document).ready(function () {
     let selectedKeywords = "";
-    let selectedLevel = "";
 
-    $('.dropdown-menu a').on('click', function () {
-        selectedLevel = $(this).html();
-        $('.dropdown-toggle').html(selectedLevel);
-    })
-
-    // Result generation button handler
+    $('.loader').hide();
     $('#resultBtn').click(function () {
         var fileTitle = 'QueryResults';
         exportCSVFile(getRowItems(queryResults), fileTitle);
@@ -20,9 +14,23 @@ $(document).ready(function () {
     // Search generation button handler
     $('#searchBtn').click(function () {
         selectedKeywords = $("#keywords").val();
-        console.log(getQuery(selectedLevel, selectedKeywords))
+        let selectedLevel = [];
+        let inputElements = document.getElementsByClassName('form-check-input');
+        for(let i=0; inputElements[i]; ++i){
+              if(inputElements[i].checked){
+                   selectedLevel.push(inputElements[i].value);
+              }
+        }
+
+        console.log(getQuery(selectedLevel[0], selectedKeywords))
         document.getElementById("section1").innerHTML = "";
-        fetch(getQuery(selectedLevel, selectedKeywords), "section1")
+        debugger;
+        if(selectedLevel != "" && selectedKeywords.length > 0) {
+            $('.loader').show();
+            fetch(getQuery(selectedLevel[0], selectedKeywords), "section1")
+        } else {
+            alert("Please check the keywords or level selected and try again!");
+        }
     });
 });
 
@@ -196,6 +204,10 @@ function executeQuery(query, containerId) {
             var table = convertJsonToTable(data)
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
+            $('.loader').hide();
+        }).error(function () {
+            $('.loader').hide();
+           console.log("HTTP request failed");
         });
 }
 
@@ -208,32 +220,32 @@ function convertJsonToTable(data) {
         cols.push(cols_json[i]);
     }
 
-    // Create a table element 
+    // Create a table element
     var table = document.createElement("table");
 
-    // Create table row tr element of a table 
+    // Create table row tr element of a table
     var tr = table.insertRow(-1);
 
     for (var i = 0; i < cols.length; i++) {
 
-        // Create the table header th element 
+        // Create the table header th element
         var theader = document.createElement("th");
         theader.innerHTML = cols[i];
 
-        // Append columnName to the table row 
+        // Append columnName to the table row
         tr.appendChild(theader);
     }
 
-    // Adding the data to the table 
+    // Adding the data to the table
     var list = data.results.bindings
     for (var i = 0; i < list.length; i++) {
 
-        // Create a new row 
+        // Create a new row
         trow = table.insertRow(-1);
         for (var j = 0; j < cols.length; j++) {
             var cell = trow.insertCell(-1);
 
-            // Inserting the cell at particular place 
+            // Inserting the cell at particular place
 
             if (list[i][cols[j]] != null) {
                 cell.innerHTML = list[i][cols[j]]["value"]
@@ -264,7 +276,8 @@ function getQuery(selectedLevel, keywords) {
 
 function fetch(query, containerID) {
     var encodedStr = encodeURIComponent(query)
-    var queryURL = "http://35.226.155.243:3030/test_data_set/query?query=" + encodedStr
+    var queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr
+    debugger;
     executeQuery(queryURL, containerID)
 }
 

@@ -7,35 +7,22 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src=".././js/ExportCSVUtility.js"></script>
     <script type="text/javascript" src=".././js/search.js"></script>
     <title>Climate Change Spider</title>
 </head>
 <body data-spy="scroll" data-offset="50">
-    <div>
+    <div class="mainBlock">
+        <div>
+            <img src=".././images/Home_logo.png">
+        </div>
         <div class="bg-color">
-            <h2 class="text-center title">Climate Change Spider</h2>
+            <h2 class="title">Climate Change Spider</h2>
         </div>
-        <div class="descriptionCls">
-            <p> Prototype search application to index climate change and environmental websites using structured
-                metadata
-            </p>
-
-        </div>
-        <!--    <div class="row mt-5 mr-left">-->
-        <!--        <input type="text" placeholder="Enter a keyword to search" class="searchText"/>-->
-        <!--        <button class="searchBtn btn btn-outline-dark ml-2">Search</button>-->
-        <!--    </div>-->
-        <hr>
     </div>
-
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="sideBar">
-                <div class="left-menu">
-                    <h6>Choose from list of keywords</h6>
+    <div class="text-center font-weight-bold" style="margin-top: 10px"> Refine your search</div>
+    <div class="filterDiv">
                     <div class="left-menu-inner">
+                        <h6>Choose from list of keywords</h6>
                         <div class="multiSelect">
                             <select id="keywords" multiple class="form-control" size="10">
                                 <option> Climate Change </option>
@@ -68,31 +55,42 @@
                             </select>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="searchLevel">
-                <div class="dropdown">
-                    <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> level
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" href="#">Article</a>
-                        <a class="dropdown-item" href="#">Event</a>
-                        <a class="dropdown-item" href="#">Organization</a>
-                        <a class="dropdown-item" href="#">Website</a>
-                    </div>
-                    <button class="btn btn-outline-dark ml-2" id="searchBtn">Search</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-1">
-            <button class="resultBtn btn btn-outline-dark ml-2" id="resultBtn">Result</button>
-        </div>
+
+                        <div class="searchLevel">
+                            <div class="checkBx h6">Choose a Level</div>
+                                 <div class="form-check">
+                                  <label class="form-check-label" for="Article">
+                                    <input type="checkbox" class="form-check-input" id="Article" name="Article" value="Article">Article
+                                  </label>
+                                </div>
+                                <div class="form-check">
+                                  <label class="form-check-label" for="Event">
+                                    <input type="checkbox" class="form-check-input" id="Event" name="Event" value="Event">Event
+                                  </label>
+                                </div>
+                                 <div class="form-check">
+                                  <label class="form-check-label" for="Organization">
+                                    <input type="checkbox" class="form-check-input" id="Organization" name="Organization" value="Organization">Organization
+                                  </label>
+                                </div>
+                                 <div class="form-check">
+                                  <label class="form-check-label" for="Website">
+                                    <input type="checkbox" class="form-check-input" id="Website" name="Website" value="Website">Website
+                                  </label>
+                            </div>
+                        </div>
+
+          <button class="btn btn-outline-dark" id="searchBtn">Search</button>
     </div>
-    <h2>RESULTS</h2>
-    <div id="section1" class="container-fluid">
+
+
+    <div class="results">
+          <h2>RESULTS</h2>
+          <button class="resultBtn btn btn-outline-dark ml-2" id="resultBtn">Export</button>
+          <div class="loader"></div>
+            <div id="section1" class="container-fluid">
+            </div>
     </div>
+
 </body>
 </html>
