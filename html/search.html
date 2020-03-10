@@ -4,10 +4,15 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href=".././css/search.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src=".././js/search.js"></script>
+    <script type="text/javascript" src=".././js/ExportCSVUtility.js"></script>
     <title>Climate Change Spider</title>
 </head>
 <body data-spy="scroll" data-offset="50">
@@ -88,8 +93,10 @@
           <h2>RESULTS</h2>
           <button class="resultBtn btn btn-outline-dark ml-2" id="resultBtn">Export</button>
           <div class="loader"></div>
-            <div id="section1" class="container-fluid">
-            </div>
+
+          <div id="all_results" class="container-fluid">
+          </div>
+            
     </div>
 
 </body>
