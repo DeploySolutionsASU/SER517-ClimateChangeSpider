@@ -1,38 +1,56 @@
 
-var queryResults = {}
+// key: search_level
+// value: search_results_json
+var searchResults = {}
 
+var selectedLevels = [];
 
 $(document).ready(function () {
     let selectedKeywords = "";
 
     $('.loader').hide();
     $('#resultBtn').click(function () {
-        var fileTitle = 'QueryResults';
-        exportCSVFile(getRowItems(queryResults), fileTitle);
+        for(var searchLevel in searchResults) {
+            exportCSVFile(getRowItems(searchResults[searchLevel]), searchLevel);
+        }
     });
 
     // Search generation button handler
     $('#searchBtn').click(function () {
         selectedKeywords = $("#keywords").val();
-        let selectedLevel = [];
+        selectedLevels = []
         let inputElements = document.getElementsByClassName('form-check-input');
         for(let i=0; inputElements[i]; ++i){
               if(inputElements[i].checked){
-                   selectedLevel.push(inputElements[i].value);
+                selectedLevels.push(inputElements[i].value);
               }
         }
 
-        console.log(getQuery(selectedLevel[0], selectedKeywords))
-        document.getElementById("section1").innerHTML = "";
+        console.log(getQuery(selectedLevels[0], selectedKeywords))
+        document.getElementById("all_results").innerHTML = "";
         debugger;
-        if(selectedLevel != "" && selectedKeywords.length > 0) {
+        if(selectedLevels.length > 0 && selectedKeywords.length > 0) {
             $('.loader').show();
-            fetch(getQuery(selectedLevel[0], selectedKeywords), "section1")
+            for (var j = 0; j < selectedLevels.length; j++) {
+                var sectionName = "section"+j
+                addNewResultSection(sectionName, selectedLevels[j])
+                fetch(getQuery(selectedLevels[j], selectedKeywords), sectionName, selectedLevels[j])
+            }
         } else {
-            alert("Please check the keywords or level selected and try again!");
+            alert("Please check the keywords or select alteast one search level!");
         }
     });
 });
+
+function addNewResultSection(sectionName, searchLevel) {
+    var section = document.createElement("div");
+    section.id = sectionName
+    section.classList.add("container-fluid")
+    var sectionTitle = document.createElement("h4");
+    sectionTitle.innerHTML = searchLevel + " Results"
+    document.getElementById("all_results").appendChild(section)
+    document.getElementById(sectionName).appendChild(sectionTitle)
+}
 
 var queryType = {
     Article: `PREFIX prefix: <http://prefix.cc/> SELECT distinct ?ID ?main_page ?part_of ?url ?image ?title 
@@ -199,8 +217,8 @@ var queryType = {
 function executeQuery(query, containerId) {
     $.post(query, {},
         function (data, status) {
-            queryResults = data
-            console.log("Data: " + JSON.stringify(queryResults)  + "\nStatus: " + status);
+            searchResults[searchLevel] = data
+            console.log("Data: " + JSON.stringify(searchResults)  + "\nStatus: " + status);
             var table = convertJsonToTable(data)
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
@@ -274,11 +292,33 @@ function getQuery(selectedLevel, keywords) {
 }
 
 
-function fetch(query, containerID) {
+function fetch(query, containerID, searchLevel) {
     var encodedStr = encodeURIComponent(query)
     var queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr
-    debugger;
-    executeQuery(queryURL, containerID)
+    executeQuery(queryURL, containerID, searchLevel)
+}
+
+function executeQuery(query, containerId, searchLevel) {
+    $.post(query, {},
+        function (data, status) {
+            searchResults[searchLevel] = data
+            console.log("Data: " + JSON.stringify(searchResults)  + "\nStatus: " + status);
+            var table = convertJsonToTable(data)
+            table.classList.add("table");
+            document.getElementById(containerId).appendChild(table)
+
+            console.log(Object.keys(searchResults).length)
+            console.log(selectedLevels.length)
+            console.log(searchResults)
+            if (Object.keys(searchResults).length == selectedLevels.length) {
+                $('.loader').hide();
+            }
+        })
+        
+        // .error(function () {
+        //     $('.loader').hide();
+        //    console.log("HTTP request failed");
+        // });
 }
 
 
