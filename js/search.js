@@ -1,3 +1,7 @@
+
+var queryResults = {}
+
+
 $(document).ready(function () {
     let selectedKeywords = "";
     let selectedLevel = "";
@@ -9,7 +13,8 @@ $(document).ready(function () {
 
     // Result generation button handler
     $('#resultBtn').click(function () {
-
+        var fileTitle = 'QueryResults';
+        exportCSVFile(getRowItems(queryResults), fileTitle);
     });
 
     // Search generation button handler
@@ -186,7 +191,8 @@ var queryType = {
 function executeQuery(query, containerId) {
     $.post(query, {},
         function (data, status) {
-            console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
+            queryResults = data
+            console.log("Data: " + JSON.stringify(queryResults)  + "\nStatus: " + status);
             var table = convertJsonToTable(data)
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
@@ -258,7 +264,7 @@ function getQuery(selectedLevel, keywords) {
 
 function fetch(query, containerID) {
     var encodedStr = encodeURIComponent(query)
-    var queryURL = "http://35.202.44.149:3030/test_data_set/query?query=" + encodedStr
+    var queryURL = "http://35.226.155.243:3030/test_data_set/query?query=" + encodedStr
     executeQuery(queryURL, containerID)
 }
 

@@ -8,54 +8,32 @@ function convertToCSV(objArray) {
     return csv;
 }
 
-//hardcoded the response for testing
-var response = {
-  "head": {
-    "vars": [ "g" , "main_page" , "part_of" , "url" , "image" , "title" , "author" , "headline" , "publisher" , "date_published" , "date_modified" , "comment" ]
-  } ,
-  "results": {
-    "bindings": [
 
-      {
-        "g": { "type": "uri" , "value": "https://www.climate-change-guide.com/contact.html" } ,
-        "url": { "type": "literal" , "value": "https://www.climate-change-guide.com/contact.html" } ,
-        "image": { "type": "literal" , "value": "https://www.climate-change-guide.com/climate-change-fb.jpg" } ,
-        "title": { "type": "literal" , "value": "Contact Climate-Change-Guide.com" }
-      },
-            {
-        "g": { "type": "uri" , "value": "http://www.firesciencenorthatlantic.org/research-publications-1/2015/4/8/managing-fuels-in-northeastern-barrens-cape-cod-national-seashore-w8zen" }
-      }
-	  ]
-	  }
-	  };
-
-
-function getHeaders(jsonObject) {
-   headers =JSON.parse(JSON.stringify(jsonObject)).head.vars;
-   return headers
-}
-
-
-function getItems(headers, response) {
+function getRowItems(response) {
 	var resultList = []
 	//safest way to parse a JSON
-	var jsonData=JSON.parse(JSON.stringify(response));
+	var jsonData=response;
 	//head variable anyway a list.
 	var headList = jsonData.head.vars;
     resultList.push(headList);
-	//started parsing
-	for(x in jsonData.results.bindings){
-		var bindingData = jsonData.results.bindings[x];
-        var row = new Array(headList.length);
-		for(var key in bindingData){
-			//if element exists in head variable list
-			if(headList.includes(key)){
-				//updating row with binding value
-                row[headList.indexOf(key)]=bindingData[key].value;
-			}
-		}
-        resultList.push(row);
-	}
+    //started parsing
+    var rows = jsonData.results.bindings
+
+    // iterating all the rows from the result json
+    for (var i = 0; i < rows.length; i++) {
+        // Create a new row 
+        var currentRow = []
+        // iterating all the headers
+        for (var j = 0; j < headList.length; j++) {
+            if (rows[i][headList[j]] != null) {
+                //updating row with binding value
+                currentRow.push(rows[i][headList[j]].value)
+            } else {
+                currentRow.push("N/A")
+            }
+        }
+        resultList.push(currentRow)
+    }
 	return resultList;
 }
 
@@ -82,13 +60,3 @@ function exportCSVFile(items, fileTitle) {
         }
     }
 }
-
-
-function main() {
-
-var fileTitle = 'Data';
-headers = getHeaders(response)
-exportCSVFile(getItems(headers, response), "fileTitle");
-}
-
-//main()
