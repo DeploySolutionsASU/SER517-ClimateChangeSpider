@@ -1,9 +1,14 @@
+
+var queryResults = {}
+
+
 $(document).ready(function () {
     let selectedKeywords = "";
 
     $('.loader').hide();
     $('#resultBtn').click(function () {
-
+        var fileTitle = 'QueryResults';
+        exportCSVFile(getRowItems(queryResults), fileTitle);
     });
 
     // Search generation button handler
@@ -194,7 +199,8 @@ var queryType = {
 function executeQuery(query, containerId) {
     $.post(query, {},
         function (data, status) {
-            console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
+            queryResults = data
+            console.log("Data: " + JSON.stringify(queryResults)  + "\nStatus: " + status);
             var table = convertJsonToTable(data)
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
