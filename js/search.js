@@ -348,9 +348,13 @@ function convertJsonToTable(data) {
             var cell = trow.insertCell(-1);
 
             // Inserting the cell at particular place
-
             if (list[i][cols[j]] != null) {
-                cell.innerHTML = list[i][cols[j]]["value"]
+                if(j == 0) {
+                    cell.innerHTML = '<a target="_blank" href="'+list[i][cols[j]]["value"]+'">'+ list[i][cols[j]]["value"]+'</a>';
+                } else {
+                    cell.innerHTML = list[i][cols[j]]["value"]
+                }
+                cell.style.wordWrap = "break-word"
             } else {
                 cell.innerHTML = "N/A"
             }
@@ -366,10 +370,10 @@ function getQuery(selectedLevel, keywords) {
     baseQuery += ' FILTER('
     for (var i = 0; i < keywords.length; i++) {
         if (i != keywords.length - 1) {
-            baseQuery += 'CONTAINS(str(?g), "' + keywords[i] + '") || '
+            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '") || '
         }
         else {
-            baseQuery += 'CONTAINS(str(?g), "' + keywords[i] + '"))}'
+            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '"))}'
         }
     }
     return baseQuery
