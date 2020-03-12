@@ -9,6 +9,8 @@ $(document).ready(function () {
     let selectedKeywords = "";
 
     $('.loader').hide();
+    $('#resultBtn').hide();
+
     $('#resultBtn').click(function () {
         for(var searchLevel in searchResults) {
             exportCSVFile(getRowItems(searchResults[searchLevel]), searchLevel);
@@ -28,7 +30,7 @@ $(document).ready(function () {
 
         console.log(getQuery(selectedLevels[0], selectedKeywords))
         document.getElementById("all_results").innerHTML = "";
-        debugger;
+
         if(selectedLevels.length > 0 && selectedKeywords.length > 0) {
             $('.loader').show();
             for (var j = 0; j < selectedLevels.length; j++) {
@@ -307,6 +309,7 @@ function executeQuery(query, containerId) {
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
             $('.loader').hide();
+
         }).error(function () {
             $('.loader').hide();
            console.log("HTTP request failed");
@@ -400,6 +403,7 @@ function executeQuery(query, containerId, searchLevel) {
             console.log(searchResults)
             if (Object.keys(searchResults).length == selectedLevels.length) {
                 $('.loader').hide();
+                 $('#resultBtn').show();
             }
         })
         
