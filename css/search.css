@@ -1,0 +1,115 @@
+    body {
+        position: relative;
+      }
+
+    table {
+        border: 1px solid black;
+        table-layout: fixed;
+        width: 200px;
+      }
+
+    th, td {
+        border: 1px solid black;
+        width: 100px;
+        overflow: hidden;
+      }
+
+    .bg-color {
+            background-color: #33bde0;
+        }
+
+    .mainBlock {
+         background-color: #33bde0;
+         display: flex;
+    }
+    .filterDiv {
+        margin-top: 1%;
+        background-color: #ffffff;
+        color: #333333;
+        border-radius: 10px;
+        border: 1px solid lightgray;
+        position: relative;
+        width: 90%;
+        margin-left: 86px;
+        padding: 15px;
+        display: flex;
+    }
+
+    .title {
+        color: whitesmoke;
+        padding:10px;
+    }
+
+    .mr-left {
+        margin-left: 30%
+    }
+    .searchText{
+        width: 50%
+    }
+    .multiSelect {
+        color: #000!important;
+        background-color: #f1f1f1!important;
+    }
+
+    .left-menu-inner {
+        width: 20%;
+        padding-top: 20px;
+        margin-left: 20%;
+    }
+
+    #searchBtn{
+        margin-top:25px;
+        height:40px;
+    }
+
+    .results{
+        padding:15px;
+    }
+    .resultBtn {
+        float: right;
+        margin-bottom: 15px;
+        margin-right: 14px;
+    }
+
+    .resultBtn:hover{
+        background-color: #33bde0;
+    }
+
+    #searchBtn:hover{
+         background-color: #33bde0;
+    }
+
+    .searchLevel {
+        width: 300px;
+        margin-top: 25px;
+        margin-left: 10%;
+    }
+
+    /*#section1 {*/
+      /*  padding-top: 50px;*/
+      /*  height: auto;*/
+      /*  color: rgba(14, 13, 13, 0.808);*/
+      /*  !*background-color: #f0f4c3;*!*/
+      /*}*/
+
+        .loader {
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite; /* Safari */
+      animation: spin 2s linear infinite;
+      margin-left:45%;
+    }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }

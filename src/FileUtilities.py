@@ -21,13 +21,17 @@ def unzip_file(file, output_path):
 # Read the files from the directory and unzip
 def read_files_to_unzip(download_path):
     print("Unzip start")
+    count = 0;
     for filename in os.listdir(download_path):
         if filename.endswith(".gz"):
             file = os.path.join(download_path, filename)
             curr_path = get_root_directory() + "/" + path_config["extract_folder"]
-            file_name_output = filename.split('.gz')[0]
+            #file_name_output = filename.split('.gz')[0]
+            #creating output files
+            file_name_output = 'datafile' + str(count) + '.nq';
             curr_path = curr_path + '/' + file_name_output
             unzip_file(file, curr_path)
+            count = count + 1;
         else:
             continue
     print("Unzip end")

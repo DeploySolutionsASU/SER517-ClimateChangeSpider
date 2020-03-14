@@ -25,9 +25,9 @@ def generate_query(query_type, data):
 
     for d in range(len(data)):
         if d != len(data) - 1:
-            filter_query += 'CONTAINS(str(?ID), "' + data[d] + '") || '
+            filter_query += 'CONTAINS(str(?g), "' + data[d] + '") || '
         else:
-            filter_query += 'CONTAINS(str(?ID), "' + data[d] + '"))\n}\nLIMIT 100'
+            filter_query += 'CONTAINS(str(?g), "' + data[d] + '"))\n}\nLIMIT 100'
 
     query += ''.join(filter_query)
 
