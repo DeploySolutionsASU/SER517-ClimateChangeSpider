@@ -351,11 +351,12 @@ function convertJsonToTable(data) {
 
         // Create the table header th element
         var theader = document.createElement("th");
-        theader.innerHTML = cols[i];
+        theader.innerHTML = formatTableColumn(cols[i]);
 
         // Append columnName to the table row
         tr.appendChild(theader);
     }
+
 
     // Adding the data to the table
     var list = data.results.bindings
@@ -393,6 +394,14 @@ function convertJsonToTable(data) {
 }
 
 
+function formatTableColumn(columnName) {
+    let formattedName = "";
+    columnName.split('_').forEach(function(item){
+         formattedName += (item.charAt(0).toUpperCase() + item.slice(1));
+         formattedName += " ";
+    });
+    return formattedName;
+}
 
 
 function getQuery(selectedLevel, keywords) {
