@@ -28,7 +28,6 @@ $(document).ready(function () {
               }
         }
 
-        console.log(getQuery(selectedLevels[0], selectedKeywords))
         document.getElementById("all_results").innerHTML = "";
 
         if(selectedLevels.length > 0 && selectedKeywords.length > 0) {
@@ -128,6 +127,7 @@ WHERE {
     }
   }
   }
+  FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
   `,
 
     Event: `SELECT DISTINCT ?g ?name ?url (CONCAT(?street_address, ", " ,?addressRegion, ", " ,?locality, ", " ,?country ) AS ?some) ?value_of_desc
@@ -167,7 +167,9 @@ WHERE
      	         <http://schema.org/addressLocality> ?locality;
                  <http://schema.org/addressCountry> ?country.
     }
-  }`,
+  }
+  FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
+  `,
 
     Organization: `PREFIX prefix: <http://prefix.cc/>
 SELECT distinct ?g ?url ?name ?address ?telephone ?sameAs ?Logo ?isBasedOnUrl ?description ?value_of_desc
@@ -255,7 +257,9 @@ WHERE {
             	 <http://www.w3.org/2006/vcard/ns#tel> ?telephone
      }
   }
-  }`,
+  }
+  FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
+  `,
 
     Website: `PREFIX prefix: <http://prefix.cc/>
 SELECT distinct ?g ?object ?name ?url ?value_of_desc
@@ -297,6 +301,7 @@ WHERE {
     }
   }
   }
+  FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
   `
 }
 
@@ -368,24 +373,28 @@ function convertJsonToTable(data) {
 
 
 function getQuery(selectedLevel, keywords) {
-    console.log(selectedLevel)
     var baseQuery = queryType[selectedLevel]
-    baseQuery += ' FILTER('
+    var descFilter = ' FILTER('
+    var graphFilter = ' FILTER('
     for (var i = 0; i < keywords.length; i++) {
         if (i != keywords.length - 1) {
-            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '") || '
+            descFilter += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '") || '
+            graphFilter += 'CONTAINS(str(?g), "' + keywords[i] + '") || '
         }
         else {
-            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '"))}'
+            descFilter += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '"))} limit 200'
+            graphFilter += 'CONTAINS(str(?g), "' + keywords[i] + '"))} limit 200'
         }
     }
-    return baseQuery
+    var fullQuery = baseQuery + descFilter
+    console.log(selectedLevel, " : ", fullQuery)
+    return fullQuery
 }
 
 
 function fetch(query, containerID, searchLevel) {
     var encodedStr = encodeURIComponent(query)
-    var queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr
+    var queryURL = "http://34.66.107.130:3030/test_data_set/query?query=" + encodedStr
     executeQuery(queryURL, containerID, searchLevel)
 }
 
@@ -397,10 +406,9 @@ function executeQuery(query, containerId, searchLevel) {
             var table = convertJsonToTable(data)
             table.classList.add("table");
             document.getElementById(containerId).appendChild(table)
-
-            console.log(Object.keys(searchResults).length)
-            console.log(selectedLevels.length)
-            console.log(searchResults)
+            console.log("Selected Levels Count: "+ selectedLevels.length)
+            console.log("Search Results Count: " + Object.keys(searchResults).length)
+            console.log("Search Results: ", searchResults)
             if (Object.keys(searchResults).length == selectedLevels.length) {
                 $('.loader').hide();
                  $('#resultBtn').show();
