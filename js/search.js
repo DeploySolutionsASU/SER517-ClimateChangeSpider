@@ -42,7 +42,23 @@ $(document).ready(function () {
             alert("Please check the keywords or select alteast one search level!");
         }
     });
+
+
 });
+
+
+
+function readMore(current) {
+    $(current).hide();
+    $(current).parent().find('.more').show();
+    $(current).parent().find('#readLess').show();
+}
+
+ function readLess(current) {
+    $(current).hide();
+    $(current).parent().find('.more').hide();
+    $(current).parent().find('#readMore').show();
+}
 
 function addNewResultSection(sectionName, searchLevel) {
     var section = document.createElement("div");
@@ -335,11 +351,12 @@ function convertJsonToTable(data) {
 
         // Create the table header th element
         var theader = document.createElement("th");
-        theader.innerHTML = cols[i];
+        theader.innerHTML = formatTableColumn(cols[i]);
 
         // Append columnName to the table row
         tr.appendChild(theader);
     }
+
 
     // Adding the data to the table
     var list = data.results.bindings
@@ -355,7 +372,17 @@ function convertJsonToTable(data) {
                 if(j == 0) {
                     cell.innerHTML = '<a target="_blank" href="'+list[i][cols[j]]["value"]+'">'+ list[i][cols[j]]["value"]+'</a>';
                 } else {
-                    cell.innerHTML = list[i][cols[j]]["value"]
+                    var content = list[i][cols[j]]["value"];
+                    if(content.length > 40) {
+                        var lessContent = content.substring(0, 40);
+                        var moreContent = content.substring(40, content.length);
+                        cell.innerHTML = '<span>'+ lessContent +'</span>' + '<span style="display: none" class="more">'+moreContent+'</span>'
+                            + '<div class="readMoreCls" onclick="readMore(this)" id="readMore">read more..</div>'
+                            + '<div style="display: none" onclick="readLess(this)" id="readLess" class="readLessCls">read less</div>'
+                    } else {
+                        cell.innerHTML = content
+                    }
+
                 }
                 cell.style.wordWrap = "break-word"
             } else {
@@ -364,6 +391,16 @@ function convertJsonToTable(data) {
         }
     }
     return table
+}
+
+
+function formatTableColumn(columnName) {
+    let formattedName = "";
+    columnName.split('_').forEach(function(item){
+         formattedName += (item.charAt(0).toUpperCase() + item.slice(1));
+         formattedName += " ";
+    });
+    return formattedName;
 }
 
 
@@ -406,11 +443,7 @@ function executeQuery(query, containerId, searchLevel) {
                  $('#resultBtn').show();
             }
         })
-        
-        // .error(function () {
-        //     $('.loader').hide();
-        //    console.log("HTTP request failed");
-        // });
+
 }
 
 
