@@ -1,4 +1,5 @@
 import boto3
+from Logger import log_message
 
 dynamodb = boto3.client('dynamodb')
 
@@ -24,9 +25,11 @@ try:
     )
 
     primaryTable.meta.client.get_waiter('table_exists').wait(TableName='primaryTable')
+    log_message("Primary table created")
+    
 
 except dynamodb.exceptions.ResourceInUseException:
-    print("Primary table already exists")
+    log_message("Primary table already exists")
 
 try:
     secondaryTable = dynamodb.create_table(
@@ -50,8 +53,9 @@ try:
     )
 
     secondaryTable.meta.client.get_waiter('table_exists').wait(TableName='secondaryTable')
+    log_message("Secondary table created")
 
 except dynamodb.exceptions.ResourceInUseException:
-    print("Secondary table already exists")
+    log_message("Secondary table already exists")
 
 
