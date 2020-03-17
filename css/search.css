@@ -89,13 +89,13 @@
 
     .readMoreCls {
         text-decoration: underline;
-        color: blue;
+        color: #007bff;
         cursor: pointer;
     }
 
     .readLessCls {
         text-decoration: underline;
-        color: blue;
+        color: #007bff;
         cursor: pointer;
     }
 

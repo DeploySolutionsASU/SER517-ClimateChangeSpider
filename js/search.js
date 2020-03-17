@@ -334,65 +334,87 @@ function executeQuery(query, containerId) {
 
 function convertJsonToTable(data) {
 
+    let i;
     var cols = [];
-
     var cols_json = data.head.vars
-    for (var i = 0; i < cols_json.length; i++) {
+    for (i = 0; i < cols_json.length; i++) {
         cols.push(cols_json[i]);
     }
 
+    debugger;
     // Create a table element
     var table = document.createElement("table");
 
     // Create table row tr element of a table
     var tr = table.insertRow(-1);
 
-    for (var i = 0; i < cols.length; i++) {
-
+    for (i = 0; i < cols.length; i++) {
         // Create the table header th element
         var theader = document.createElement("th");
-        theader.innerHTML = formatTableColumn(cols[i]);
 
+        if(i == 2) {
+            theader.innerHTML = formatTableColumn(cols[cols.length - 1]);
+        } else if (i == cols.length - 1) {
+             theader.innerHTML = formatTableColumn(cols[2]);
+        } else {
+            theader.innerHTML = formatTableColumn(cols[i]);
+        }
         // Append columnName to the table row
         tr.appendChild(theader);
     }
 
 
     // Adding the data to the table
-    var list = data.results.bindings
-    for (var i = 0; i < list.length; i++) {
-
+    const list = data.results.bindings;
+    for (i = 0; i < list.length; i++) {
         // Create a new row
         trow = table.insertRow(-1);
-        for (var j = 0; j < cols.length; j++) {
-            var cell = trow.insertCell(-1);
-
+        for (let j = 0; j < cols.length; j++) {
+            const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-            if (list[i][cols[j]] != null) {
-                if(j == 0) {
-                    cell.innerHTML = '<a target="_blank" href="'+list[i][cols[j]]["value"]+'">'+ list[i][cols[j]]["value"]+'</a>';
-                } else {
-                    var content = list[i][cols[j]]["value"];
-                    if(content.length > 40) {
-                        var lessContent = content.substring(0, 40);
-                        var moreContent = content.substring(40, content.length);
-                        cell.innerHTML = '<span>'+ lessContent +'</span>' + '<span style="display: none" class="more">'+moreContent+'</span>'
-                            + '<div class="readMoreCls" onclick="readMore(this)" id="readMore">read more..</div>'
-                            + '<div style="display: none" onclick="readLess(this)" id="readLess" class="readLessCls">read less</div>'
+            if(j == 2) {
+                    if (list[i][cols[cols.length - 1]] != null) {
+                        const content = formatTableColumn(list[i][cols[cols.length - 1]]["value"]);
+                        formatContent(cell, content);
                     } else {
-                        cell.innerHTML = content
+                        cell.innerHTML = "N/A"
                     }
-
-                }
-                cell.style.wordWrap = "break-word"
+            } else if (j == cols.length - 1) {
+                  if (list[i][cols[2]] != null) {
+                    const content = formatTableColumn(list[i][cols[2]]["value"]);
+                    formatContent(cell, content)
+                    } else {
+                        cell.innerHTML = "N/A"
+                    }
             } else {
-                cell.innerHTML = "N/A"
+                 if (list[i][cols[j]] != null) {
+                    if(j == 0) {
+                        cell.innerHTML = '<a target="_blank" href="'+list[i][cols[j]]["value"]+'">'+ list[i][cols[j]]["value"]+'</a>';
+                    } else {
+                        const content = formatTableColumn(list[i][cols[j]]["value"]);
+                        formatContent(cell, content)
+                         }
+                    } else {
+                        cell.innerHTML = "N/A"
+                    }
             }
+            cell.style.wordWrap = "break-word"
         }
     }
     return table
 }
 
+function formatContent(cell, content) {
+      if(content.length > 40) {
+          const lessContent = content.substring(0, 40);
+          const moreContent = content.substring(40, content.length);
+          cell.innerHTML = '<span>'+ lessContent +'</span>' + '<span style="display: none" class="more">'+moreContent+'</span>'
+            + '<div class="readMoreCls" onclick="readMore(this)" id="readMore">read more..</div>'
+            + '<div style="display: none" onclick="readLess(this)" id="readLess" class="readLessCls">read less</div>'
+        } else {
+            cell.innerHTML = content
+        }
+}
 
 function formatTableColumn(columnName) {
     let formattedName = "";
@@ -443,7 +465,4 @@ function executeQuery(query, containerId, searchLevel) {
                  $('#resultBtn').show();
             }
         })
-
 }
-
-
