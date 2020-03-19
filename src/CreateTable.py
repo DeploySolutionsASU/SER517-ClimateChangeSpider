@@ -24,7 +24,6 @@ try:
         }
     )
 
-    primaryTable.meta.client.get_waiter('table_exists').wait(TableName='primaryTable')
     log_message("Primary table created")
     
 
@@ -52,7 +51,6 @@ try:
         }
     )
 
-    secondaryTable.meta.client.get_waiter('table_exists').wait(TableName='secondaryTable')
     log_message("Secondary table created")
 
 except dynamodb.exceptions.ResourceInUseException:
