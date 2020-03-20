@@ -4,8 +4,8 @@ from Logger import log_message
 dynamodb = boto3.client('dynamodb')
 
 try:
-    primaryTable = dynamodb.create_table(
-        TableName='primaryTable',
+    jobTable = dynamodb.create_table(
+        TableName='jobTable',
         KeySchema=[
             {
                 'AttributeName': 'job_id',
@@ -24,24 +24,32 @@ try:
         }
     )
 
-    log_message("Primary table created")
+    log_message("Job table created")
     
 
 except dynamodb.exceptions.ResourceInUseException:
-    log_message("Primary table already exists")
+    log_message("Job table already exists")
 
 try:
-    secondaryTable = dynamodb.create_table(
-        TableName='secondaryTable',
+    partitionTable = dynamodb.create_table(
+        TableName='partitionTable',
         KeySchema=[
             {
                 'AttributeName': 'partition_id',
                 'KeyType': 'HASH'
             },
+            {
+                'AttributeName': 'job_id',
+                'KeyType': 'RANGE'
+            }
         ],
         AttributeDefinitions=[
             {
                 'AttributeName': 'partition_id',
+                'AttributeType': 'N'
+            },
+            {
+                'AttributeName': 'job_id',
                 'AttributeType': 'N'
             }
         ],
@@ -51,9 +59,7 @@ try:
         }
     )
 
-    log_message("Secondary table created")
+    log_message("Partition table created")
 
 except dynamodb.exceptions.ResourceInUseException:
-    log_message("Secondary table already exists")
-
-
+    log_message("Partition table already exists")
