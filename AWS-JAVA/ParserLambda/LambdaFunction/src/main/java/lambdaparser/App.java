@@ -4,6 +4,12 @@ import java.io.*;
 import java.util.*;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.apache.jena.rdf.model.Model;
@@ -28,17 +34,54 @@ public class App implements RequestHandler<S3Event, String> {
         String s3BucketName = record.getS3().getBucket().getName();
         String s3FileName = record.getS3().getObject().getUrlDecodedKey();
         S3Object fullObject = null;
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("PartitionTable");
         try {
-            AmazonS3 s3Client = new AmazonS3Client(DefaultAWSCredentialsProviderChain.getInstance());
-            fullObject = s3Client.getObject(new GetObjectRequest(s3BucketName, s3FileName));
-            List<String> lines = displayTextInputStream(fullObject.getObjectContent());
-            fileValidator(s3Client, s3FileName, lines);
-            System.out.println("Parsing done!!");
+            GetItemSpec spec = new GetItemSpec()
+                    .withPrimaryKey("PartitionKey", s3FileName)
+                    .withProjectionExpression("FileStatus")
+                    .withConsistentRead(true);
+            String currentStatus = table.getItem(spec).getString("FileStatus");
+
+            System.out.println("currentStatus:" +currentStatus);
+            if(currentStatus.equals("partitioned")) {
+                Map<String, String> expressionAttributeNames = new HashMap<>();
+                expressionAttributeNames.put("#F", "FileStatus");
+                Map<String, Object> expressionAttributeValues = new HashMap<>();
+                expressionAttributeValues.put(":val1", "tobeparsed");
+                UpdateItemOutcome outcome =  table.updateItem(
+                        "PartitionKey",
+                        s3FileName,
+                        "set #F = :val1",
+                        expressionAttributeNames,
+                        expressionAttributeValues);
+
+                AmazonS3 s3Client = new AmazonS3Client(DefaultAWSCredentialsProviderChain.getInstance());
+                fullObject = s3Client.getObject(new GetObjectRequest(s3BucketName, s3FileName));
+                List<String> lines = displayTextInputStream(fullObject.getObjectContent());
+                fileValidator(s3Client, s3FileName, lines);
+                System.out.println("Parsing done!!");
+
+
+                Map<String, Object> expressionAttributeValuesParsed = new HashMap<>();
+                expressionAttributeValuesParsed.put(":val1", "parsed");
+
+                UpdateItemOutcome res =  table.updateItem(
+                        "PartitionKey",
+                        s3FileName,
+                        "set #F = :val1",
+                        expressionAttributeNames,
+                        expressionAttributeValuesParsed);
+            } else {
+                System.out.println("The file is already parsed");
+            }
+
         } catch(Exception ex) {
-            System.out.println("error "+ ex);
+            System.out.println("error-- "+ ex);
         }
 
-        return "";
+        return "Parser";
     }
 
     public void fileValidator(AmazonS3 s3Client, String fname, List<String> fileData) throws IOException {
@@ -64,7 +107,7 @@ public class App implements RequestHandler<S3Event, String> {
         }
 
         if (errorLineNo.size() == 0) {
-            PutObjectRequest request = new PutObjectRequest("s3parsedfiles", fname,
+            PutObjectRequest request = new PutObjectRequest("parsers3bucket", fname,
                     new File("/tmp/" + fname));
             s3Client.putObject(request);
             File file = new File("/tmp/" + fname);
