@@ -8,11 +8,11 @@ def delete_file():
     call('rm -rf /tmp/*', shell=True)
 
 
-def splitter(data, bucket_key, threshold=10):
+def splitter(data, bucket_key, threshold=30000):
     # File partitioned for the given threshold
 
     file_count = 0
-    total_file = math.ceil(len(data) / 10)
+    total_file = math.ceil(len(data) / 30000)
 
     for i in range(0, len(data), threshold):
         file_count += 1;
@@ -71,34 +71,55 @@ def lambda_handler(event, context):
 
     # Fetch the file from S3
     s3_client = boto3.client('s3')
-    record = s3_client.get_object(Bucket=s3bucket, Key=s3object)
-    final_content = record["Body"].read().splitlines()
+    start = 0
+    limit = 6000000
+    base_limit = 6000000
+    # create byte range as string
+    rec = s3_client.head_object(Bucket=s3bucket, Key=s3object)
+    end = rec['ContentLength']
 
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('JobTable')
+    print("RECORD LEN ", rec['ContentLength'])
+    n = rec['ContentLength'] / limit
+    n = math.ceil(n)
 
-    result = table.get_item(
-        Key={
-            'JobID': s3object
-        }
-    )
+    for i in range(0, n):
+        rangeString = 'bytes=' + str(start) + '-' + str(limit - 1)
+        print('start: ', start)
+        print('limit: ', limit)
+        record = s3_client.get_object(Bucket=s3bucket, Key=s3object, Range=rangeString)
+        final_content = record["Body"].read().splitlines()
+        dynamodb = boto3.resource('dynamodb')
+        table = dynamodb.Table('JobTable')
 
-    job_table_status = result['Item']['FileStatus']
-    print('job_table_status', job_table_status)
-
-    if job_table_status == 'downloaded':
-        table.update_item(
+        result = table.get_item(
             Key={
                 'JobID': s3object
-            },
-            UpdateExpression='SET FileStatus = :val1',
-            ExpressionAttributeValues={
-                ':val1': 'tobepartitioned'
             }
         )
-        print("updated the primary table")
 
-        splitter(final_content, s3object)
-        print('Upload success!!')
-    else:
-        print('This file is already done')
+        job_table_status = result['Item']['FileStatus']
+        print('job_table_status', job_table_status)
+
+        if i >= n and job_table_status == 'downloaded':
+            table.update_item(
+                Key={
+                    'JobID': s3object
+                },
+                UpdateExpression='SET FileStatus = :val1',
+                ExpressionAttributeValues={
+                    ':val1': 'tobepartitioned'
+                }
+            )
+
+        if job_table_status != 'tobepartitioned':
+            print("updated the primary table")
+            splitter(final_content, s3object)
+            print('Upload success!!')
+        else:
+            print('This file is already done')
+
+        if limit >= end:
+            break
+        else:
+            start = start + limit
+            limit = limit + base_limit
