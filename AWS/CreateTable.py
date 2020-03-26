@@ -1,5 +1,4 @@
 import boto3
-from Logger import log_message
 
 dynamodb = boto3.client('dynamodb')
 
@@ -24,11 +23,11 @@ try:
         }
     )
 
-    log_message("Job table created")
+    print("Job table created")
     
 
 except dynamodb.exceptions.ResourceInUseException:
-    log_message("Job table already exists")
+    print("Job table already exists")
 
 try:
     partitionTable = dynamodb.create_table(
@@ -59,7 +58,7 @@ try:
         }
     )
 
-    log_message("Partition table created")
+    print("Partition table created")
 
 except dynamodb.exceptions.ResourceInUseException:
-    log_message("Partition table already exists")
+    print("Partition table already exists")
