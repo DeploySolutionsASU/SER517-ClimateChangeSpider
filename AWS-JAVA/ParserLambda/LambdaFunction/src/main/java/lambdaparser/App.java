@@ -36,10 +36,10 @@ public class App implements RequestHandler<S3Event, String> {
         S3Object fullObject = null;
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
         DynamoDB dynamoDB = new DynamoDB(client);
-        Table table = dynamoDB.getTable("PartitionTable");
+        Table table = dynamoDB.getTable("FilePartitions");
         try {
             GetItemSpec spec = new GetItemSpec()
-                    .withPrimaryKey("PartitionKey", s3FileName)
+                    .withPrimaryKey("PartitionID", s3FileName)
                     .withProjectionExpression("FileStatus")
                     .withConsistentRead(true);
             String currentStatus = table.getItem(spec).getString("FileStatus");
@@ -51,7 +51,7 @@ public class App implements RequestHandler<S3Event, String> {
                 Map<String, Object> expressionAttributeValues = new HashMap<>();
                 expressionAttributeValues.put(":val1", "tobeparsed");
                 UpdateItemOutcome outcome =  table.updateItem(
-                        "PartitionKey",
+                        "PartitionID",
                         s3FileName,
                         "set #F = :val1",
                         expressionAttributeNames,
@@ -68,7 +68,7 @@ public class App implements RequestHandler<S3Event, String> {
                 expressionAttributeValuesParsed.put(":val1", "parsed");
 
                 UpdateItemOutcome res =  table.updateItem(
-                        "PartitionKey",
+                        "PartitionID",
                         s3FileName,
                         "set #F = :val1",
                         expressionAttributeNames,
@@ -107,7 +107,7 @@ public class App implements RequestHandler<S3Event, String> {
         }
 
         if (errorLineNo.size() == 0) {
-            PutObjectRequest request = new PutObjectRequest("parsers3bucket", fname,
+            PutObjectRequest request = new PutObjectRequest("climatechange-parsed-files", fname,
                     new File("/tmp/" + fname));
             s3Client.putObject(request);
             File file = new File("/tmp/" + fname);
