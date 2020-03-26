@@ -8,11 +8,11 @@ def delete_file():
     call('rm -rf /tmp/*', shell=True)
 
 
-def splitter(data, bucket_key, threshold=30000):
+def splitter(data, bucket_key, threshold=50000):
     # File partitioned for the given threshold
 
     file_count = 0
-    total_file = math.ceil(len(data) / 30000)
+    total_file = math.ceil(len(data) / 50000)
 
     for i in range(0, len(data), threshold):
         file_count += 1;
@@ -28,18 +28,18 @@ def splitter(data, bucket_key, threshold=30000):
         file_path = '/tmp/' + filename
 
         # Upload the files to the new S3
-        response = news3.upload_file(file_path, 'partitions3bucket',
+        response = news3.upload_file(file_path, 'climatechange-partitions',
                                      filename)
         delete_file()
 
         # Insert in the secondary table  with job_id and uu_id
 
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table('PartitionTable')
+        table = dynamodb.Table('FilePartitions')
         table.put_item(
             Item={
                 'JobID': bucket_key,
-                'PartitionKey': filename,
+                'PartitionID': filename,
                 'FileStatus': 'partitioned',
             }
         )
@@ -49,7 +49,7 @@ def splitter(data, bucket_key, threshold=30000):
     if file_count == total_file:
         # Update DynamoDB main table
 
-        table = dynamodb.Table('JobTable')
+        table = dynamodb.Table('FileDownloads')
         table.update_item(
             Key={
                 'JobID': bucket_key
@@ -72,8 +72,8 @@ def lambda_handler(event, context):
     # Fetch the file from S3
     s3_client = boto3.client('s3')
     start = 0
-    limit = 6000000
-    base_limit = 6000000
+    limit = 1000000000
+    base_limit = 1000000000
     # create byte range as string
     rec = s3_client.head_object(Bucket=s3bucket, Key=s3object)
     end = rec['ContentLength']
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         record = s3_client.get_object(Bucket=s3bucket, Key=s3object, Range=rangeString)
         final_content = record["Body"].read().splitlines()
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table('JobTable')
+        table = dynamodb.Table('FileDownloads')
 
         result = table.get_item(
             Key={
