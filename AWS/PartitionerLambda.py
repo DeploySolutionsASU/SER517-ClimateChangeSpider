@@ -72,8 +72,8 @@ def lambda_handler(event, context):
     # Fetch the file from S3
     s3_client = boto3.client('s3')
     start = 0
-    limit = 1000000000
-    base_limit = 1000000000
+    limit = 500000000
+    base_limit = 500000000
     # create byte range as string
     rec = s3_client.head_object(Bucket=s3bucket, Key=s3object)
     end = rec['ContentLength']
@@ -121,5 +121,5 @@ def lambda_handler(event, context):
         if limit >= end:
             break
         else:
-            start = start + limit
+            start = limit
             limit = limit + base_limit
