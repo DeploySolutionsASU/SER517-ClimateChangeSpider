@@ -1,28 +1,20 @@
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00000.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00001.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00002.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00003.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00004.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00005.gz
-# http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00006.gz
+import json
+
+import gzip
+import urllib.request
+from io import BytesIO
+
 import boto3
-import wget
 import time
-
-
-
-
-
 from botocore.exceptions import ClientError
 from pip._internal.utils import logging
 
 
 def download_file(url, output_path):
-
     start_time = time.time()
     print("Download start time : ", start_time)
     try:
-        wget.download(url, out=output_path)
+        urllib.request.urlretrieve(url, output_path)
     except Exception as e:
         print(e)
     else:
@@ -38,8 +30,16 @@ def upload_file_to_s3(file_name, bucket, object_name=None):
     try:
         start_time = time.time()
         print(file_name, "Upload start time is :", start_time)
-        s3_client.upload_file(file_name, bucket, object_name)
-        print(file_name + "upload file done for ", file_name, " at ", time.time()-start_time)
+
+        s3_client.upload_fileobj(  # upload a new obj to s3
+            Fileobj=gzip.GzipFile(  # read in the output of gzip -d
+                None,  # just return output as BytesIO
+                'rb',  # read binary
+                fileobj=BytesIO(open(file_name, "rb").read())),
+            Bucket=bucket,  # target bucket, writing to
+            Key=object_name)  # target key, writing to
+
+        print(file_name + "upload file done for ", file_name, " at ", time.time() - start_time)
     except ClientError as e:
         logging.error(e)
         return False
@@ -49,18 +49,36 @@ def upload_file_to_s3(file_name, bucket, object_name=None):
     return True
 
 
+def update_job_status(job_id, job_status):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('FileDownloads')
+    table.update_item(
+        Key={
+            'JobID': job_id,
+        },
+        UpdateExpression='SET FileStatus = :status',
+        ExpressionAttributeValues={
+            ':status': job_status
+        }
+    )
+    print("updated the job status as ", job_status)
+
+
 def lambda_handler(event, context):
+    # # source_file_name = event["Records"][0]["s3"]["object"]["key"]
+    # print(event,"\n", context)
+    # return
 
-    # update dyna status
+    splits = event["Records"][0]["body"].split(",")
+    url = splits[0]
+    key = splits[1]
 
-    url = "http://data.dws.informatik.uni-mannheim.de/structureddata/2019-12/quads/dpef.html-rdfa.nq-00000.gz"
-    key = "11"
+    print(url, key)
 
-    file_path = "./tmp1/" + key + ".nq"
+    file_path = "/tmp/" + key + ".gz"
 
-    # download_file(url, file_path)
+    download_file(url, file_path)
     upload_file_to_s3(file_path, "climatechange-downloads", key + ".nq")
+    update_job_status(key, "downloaded")
 
 
-if __name__ == '__main__':
-    lambda_handler(None, None)
