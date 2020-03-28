@@ -9,6 +9,19 @@ def download_file(url):
     return text
 
 
+def send_sqs_message(url, job_id):
+    # Create SQS client
+    sqs = boto3.client('sqs')
+    queue_url = 'https://sqs.us-east-1.amazonaws.com/967866184802/url_queue'
+
+    # Send message to SQS queue
+    response = sqs.send_message(
+        QueueUrl=queue_url,
+        DelaySeconds=0,
+        MessageAttributes={},
+        MessageBody=('{url},{id}'.format(url=url, id=job_id)))
+    print(response['MessageId'])
+
 
 def insert_into_db(job_id, url_value):
     dynamodb = boto3.resource('dynamodb')
@@ -20,6 +33,7 @@ def insert_into_db(job_id, url_value):
             'FileStatus': 'tobedownloaded',
         }
     )
+
 
 def lambda_handler(event, context):
     urls = ["http://webdatacommons.org/structureddata/2019-12/files/html-rdfa.list",
@@ -37,12 +51,12 @@ def lambda_handler(event, context):
             "http://webdatacommons.org/structureddata/2019-12/files/html-mf-xfn.list"]
 
     job_id = 0
+
     for url in urls:
         values = download_file(url).split("\n")
-        for value in values[:1]:
+        for value in values:
             insert_into_db(str(job_id), value)
+            send_sqs_message(value, job_id)
             job_id += 1
 
-if __name__ == '__main__':
-    lambda_handler(None,None)
 
