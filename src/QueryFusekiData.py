@@ -319,9 +319,14 @@ def generate_result(data_set):
 
         response = make_http_post_request(url, payload={"query": query},
                                           headers={'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
-
+        temp_entry = ''
+        id = 1
+        for entry in response['results']['bindings']:
+            test =  '{ "index" : { "_index" : "'+val.lower()+'", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
+            temp_entry += test + json.dumps(entry) + '\n'
+            id +=1
         outfile = open(val+'.json', "w")
-        outfile.write(json.dumps(response['results']['bindings'], indent=2, sort_keys=True))
+        outfile.write(temp_entry)
         outfile.close()
 
 
