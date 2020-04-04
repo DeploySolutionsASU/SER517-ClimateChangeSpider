@@ -12,6 +12,9 @@ import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
 
@@ -34,54 +37,46 @@ public class App implements RequestHandler<S3Event, String> {
         String s3BucketName = record.getS3().getBucket().getName();
         String s3FileName = record.getS3().getObject().getUrlDecodedKey();
         S3Object fullObject = null;
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-        Table table = dynamoDB.getTable("FilePartitions");
+
         try {
-            GetItemSpec spec = new GetItemSpec()
-                    .withPrimaryKey("PartitionID", s3FileName)
-                    .withProjectionExpression("FileStatus")
-                    .withConsistentRead(true);
-            String currentStatus = table.getItem(spec).getString("FileStatus");
 
-            System.out.println("currentStatus:" +currentStatus);
-            if(currentStatus.equals("partitioned")) {
-                Map<String, String> expressionAttributeNames = new HashMap<>();
-                expressionAttributeNames.put("#F", "FileStatus");
-                Map<String, Object> expressionAttributeValues = new HashMap<>();
-                expressionAttributeValues.put(":val1", "tobeparsed");
-                UpdateItemOutcome outcome =  table.updateItem(
-                        "PartitionID",
-                        s3FileName,
-                        "set #F = :val1",
-                        expressionAttributeNames,
-                        expressionAttributeValues);
-
-                AmazonS3 s3Client = new AmazonS3Client(DefaultAWSCredentialsProviderChain.getInstance());
-                fullObject = s3Client.getObject(new GetObjectRequest(s3BucketName, s3FileName));
-                List<String> lines = displayTextInputStream(fullObject.getObjectContent());
-                fileValidator(s3Client, s3FileName, lines);
-                System.out.println("Parsing done!!");
-
-
-                Map<String, Object> expressionAttributeValuesParsed = new HashMap<>();
-                expressionAttributeValuesParsed.put(":val1", "parsed");
-
-                UpdateItemOutcome res =  table.updateItem(
-                        "PartitionID",
-                        s3FileName,
-                        "set #F = :val1",
-                        expressionAttributeNames,
-                        expressionAttributeValuesParsed);
-            } else {
-                System.out.println("The file is already parsed");
-            }
-
+            AmazonS3 s3Client = new AmazonS3Client(DefaultAWSCredentialsProviderChain.getInstance());
+            fullObject = s3Client.getObject(new GetObjectRequest(s3BucketName, s3FileName));
+            List<String> lines = displayTextInputStream(fullObject.getObjectContent());
+            fileValidator(s3Client, s3FileName, lines);
+            System.out.println("Parsing done!!");
+            updateJobStatus(s3FileName);
+            String parsedFileUrl = "https://climatechange-parsed-files.s3.amazonaws.com/" + s3FileName;
+            sendSQSMessage(parsedFileUrl, s3FileName);
         } catch(Exception ex) {
             System.out.println("error-- "+ ex);
         }
 
         return "Parser";
+    }
+
+    private void updateJobStatus(String s3FileName) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("FilePartitions");
+        Map<String, Object> expressionAttributeValuesParsed = new HashMap<>();
+        expressionAttributeValuesParsed.put(":val1", "parsed");
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put("#F", "FileStatus");
+        UpdateItemOutcome res =  table.updateItem(
+                "PartitionID",
+                s3FileName,
+                "set #F = :val1",
+                expressionAttributeNames,
+                expressionAttributeValuesParsed);
+    }
+
+    private void sendSQSMessage(String parsedFileUrl, String partitionId) {
+        String queueUrl = "https://sqs.us-east-1.amazonaws.com/967866184802/import_queue";
+        final AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+        sqs.sendMessage(new SendMessageRequest(queueUrl,
+                parsedFileUrl+","+partitionId));
+
     }
 
     public void fileValidator(AmazonS3 s3Client, String fname, List<String> fileData) throws IOException {
