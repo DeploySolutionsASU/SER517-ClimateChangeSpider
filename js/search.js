@@ -1,16 +1,13 @@
 
 // key: search_level
 // value: search_results_json
-var searchResults = {}
-
-var selectedLevels = [];
+let searchResults = {};
+let selectedLevels = [];
 
 $(document).ready(function () {
     let selectedKeywords = "";
-
     $('.loader').hide();
     $('#resultBtn').hide();
-
     $('#resultBtn').click(function () {
         for(var searchLevel in searchResults) {
             exportCSVFile(getRowItems(searchResults[searchLevel]), searchLevel);
@@ -21,6 +18,7 @@ $(document).ready(function () {
     $('#searchBtn').click(function () {
         selectedKeywords = $("#keywords").val();
         selectedLevels = []
+        searchResults = {}
         let inputElements = document.getElementsByClassName('form-check-input');
         for(let i=0; inputElements[i]; ++i){
               if(inputElements[i].checked){
@@ -42,11 +40,7 @@ $(document).ready(function () {
             alert("Please check the keywords or select alteast one search level!");
         }
     });
-
-
 });
-
-
 
 function readMore(current) {
     $(current).hide();
@@ -61,16 +55,16 @@ function readMore(current) {
 }
 
 function addNewResultSection(sectionName, searchLevel) {
-    var section = document.createElement("div");
+    const section = document.createElement("div");
     section.id = sectionName
     section.classList.add("container-fluid")
-    var sectionTitle = document.createElement("h4");
+    const sectionTitle = document.createElement("h4");
     sectionTitle.innerHTML = searchLevel + " Results"
     document.getElementById("all_results").appendChild(section)
-    document.getElementById(sectionName).appendChild(sectionTitle)
+    //document.getElementById(sectionName).appendChild(sectionTitle)
 }
 
-var queryType = {
+const queryType = {
     Article: `PREFIX prefix: <http://prefix.cc/>
 SELECT distinct ?g ?url ?image ?title ?author ?date_modified ?date_published ?article_section ?comment ?headline ?part_of ?main_page ?value_of_desc
 WHERE {
@@ -314,43 +308,26 @@ WHERE {
   }
   }
   `
-}
+};
 
-function executeQuery(query, containerId) {
-    $.post(query, {},
-        function (data, status) {
-            searchResults[searchLevel] = data
-            console.log("Data: " + JSON.stringify(searchResults)  + "\nStatus: " + status);
-            var table = convertJsonToTable(data)
-            table.classList.add("table");
-            document.getElementById(containerId).appendChild(table)
-            $('.loader').hide();
-
-        }).error(function () {
-            $('.loader').hide();
-           console.log("HTTP request failed");
-        });
-}
-
-function convertJsonToTable(data) {
-
+function convertJsonToTable(data, searchLevel) {
     let i;
-    var cols = [];
-    var cols_json = data.head.vars
+    const cols = [];
+    const cols_json = data.head.vars;
     for (i = 0; i < cols_json.length; i++) {
         cols.push(cols_json[i]);
     }
 
-    debugger;
     // Create a table element
-    var table = document.createElement("table");
+    const table = document.createElement("table");
+    table.class = "collapse in";
+    table.id = searchLevel;
 
     // Create table row tr element of a table
-    var tr = table.insertRow(-1);
-
+    const tr = table.insertRow(-1);
     for (i = 0; i < cols.length; i++) {
         // Create the table header th element
-        var theader = document.createElement("th");
+        const theader = document.createElement("th");
 
         if(i == 2) {
             theader.innerHTML = formatTableColumn(cols[cols.length - 1]);
@@ -363,40 +340,40 @@ function convertJsonToTable(data) {
         tr.appendChild(theader);
     }
 
-
     // Adding the data to the table
     const list = data.results.bindings;
+    let trow;
     for (i = 0; i < list.length; i++) {
         // Create a new row
         trow = table.insertRow(-1);
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-            if(j == 2) {
-                    if (list[i][cols[cols.length - 1]] != null) {
-                        const content = formatTableColumn(list[i][cols[cols.length - 1]]["value"]);
-                        formatContent(cell, content);
-                    } else {
-                        cell.innerHTML = "N/A"
-                    }
+            if (j == 2) {
+                if (list[i][cols[cols.length - 1]] != null) {
+                    const content = formatTableColumn(list[i][cols[cols.length - 1]]["value"]);
+                    formatContent(cell, content);
+                } else {
+                    cell.innerHTML = "N/A"
+                }
             } else if (j == cols.length - 1) {
-                  if (list[i][cols[2]] != null) {
+                if (list[i][cols[2]] != null) {
                     const content = formatTableColumn(list[i][cols[2]]["value"]);
                     formatContent(cell, content)
-                    } else {
-                        cell.innerHTML = "N/A"
-                    }
+                } else {
+                    cell.innerHTML = "N/A"
+                }
             } else {
-                 if (list[i][cols[j]] != null) {
-                    if(j == 0) {
-                        cell.innerHTML = '<a target="_blank" href="'+list[i][cols[j]]["value"]+'">'+ list[i][cols[j]]["value"]+'</a>';
+                if (list[i][cols[j]] != null) {
+                    if (j == 0) {
+                        cell.innerHTML = '<a target="_blank" href="' + list[i][cols[j]]["value"] + '">' + list[i][cols[j]]["value"] + '</a>';
                     } else {
                         const content = formatTableColumn(list[i][cols[j]]["value"]);
                         formatContent(cell, content)
-                         }
-                    } else {
-                        cell.innerHTML = "N/A"
                     }
+                } else {
+                    cell.innerHTML = "N/A"
+                }
             }
             cell.style.wordWrap = "break-word"
         }
@@ -425,12 +402,11 @@ function formatTableColumn(columnName) {
     return formattedName;
 }
 
-
 function getQuery(selectedLevel, keywords) {
-    console.log(selectedLevel)
-    var baseQuery = queryType[selectedLevel]
+    console.log("selectedLevel", selectedLevel)
+    let baseQuery = queryType[selectedLevel];
     baseQuery += ' FILTER('
-    for (var i = 0; i < keywords.length; i++) {
+    for (let i = 0; i < keywords.length; i++) {
         if (i != keywords.length - 1) {
             baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '") || '
         }
@@ -441,10 +417,9 @@ function getQuery(selectedLevel, keywords) {
     return baseQuery
 }
 
-
 function fetch(query, containerID, searchLevel) {
-    var encodedStr = encodeURIComponent(query)
-    var queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr
+    const encodedStr = encodeURIComponent(query);
+    const queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr;
     executeQuery(queryURL, containerID, searchLevel)
 }
 
@@ -453,16 +428,24 @@ function executeQuery(query, containerId, searchLevel) {
         function (data, status) {
             searchResults[searchLevel] = data
             console.log("Data: " + JSON.stringify(searchResults)  + "\nStatus: " + status);
-            var table = convertJsonToTable(data)
+            const table = convertJsonToTable(data, searchLevel);
             table.classList.add("table");
-            document.getElementById(containerId).appendChild(table)
-
-            console.log(Object.keys(searchResults).length)
-            console.log(selectedLevels.length)
-            console.log(searchResults)
+            const sectionCount = document.createElement("p");
+            sectionCount.innerHTML = searchLevel + " Count: " + data.results.bindings.length;
+            document.getElementById(containerId).appendChild(sectionCount);
+            const btnToggle = document.createElement("button");
+            btnToggle.className = "btn btn-info";
+            btnToggle.innerText = searchLevel + " Results";
+            btnToggle.style.marginBottom = "10px";
+            btnToggle.setAttribute("data-toggle", "collapse");
+            btnToggle.setAttribute("data-target", "#"+searchLevel);
+            document.getElementById(containerId).appendChild(btnToggle);
+            document.getElementById(containerId).appendChild(table);
+            const hrline = document.createElement("hr");
+            document.getElementById(containerId).appendChild(hrline);
             if (Object.keys(searchResults).length == selectedLevels.length) {
                 $('.loader').hide();
-                 $('#resultBtn').show();
+                $('#resultBtn').show();
             }
         })
 }
