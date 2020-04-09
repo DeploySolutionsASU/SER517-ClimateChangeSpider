@@ -3,6 +3,8 @@ import sys
 
 from requests import post as POST
 
+#from ElasticSearchManager import create_bulk_index
+
 default_headers = {"Content-Type": "application/json"}
 fuseki_url_template = '{protocol}://{ip_address}:{port_number}/{data_set_name}'
 
@@ -321,13 +323,28 @@ def generate_result(data_set):
                                           headers={'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
         temp_entry = ''
         id = 1
-        for entry in response['results']['bindings']:
+        processed_entry = {}
+        end = len(response['results']['bindings'])
+        entry = response['results']['bindings']
+
+        # Adding indexes to query response
+        for line in range(0, end):
             test =  '{ "index" : { "_index" : "'+val.lower()+'", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
-            temp_entry += test + json.dumps(entry) + '\n'
+            for i in entry[line]:
+                kval = entry[line][i]["value"]
+                processed_entry[i] = kval
+            temp_entry += test + json.dumps(processed_entry) + '\n'
             id +=1
-        outfile = open(val+'.json', "w")
-        outfile.write(temp_entry)
-        outfile.close()
+
+            # Write every 100 line to a new json file to send it as an input to elastic search
+            if line / 100 == 1 or line == end - 1:
+                outfile = open(val+str(id)+'.json', "w")
+                outfile.write(temp_entry)
+                temp_entry = ""
+                processed_entry = {}
+                outfile.close()
+
+
 
 
 if __name__ == '__main__':
