@@ -1,30 +1,25 @@
 package lambdaparser;
 
-import java.io.*;
-import java.util.*;
-
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.S3Event;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
+import org.json.JSONObject;
+import software.amazon.ion.SystemSymbols;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.S3Event;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
+import java.io.*;
+import java.util.*;
 
 
 /**
@@ -46,8 +41,9 @@ public class App implements RequestHandler<S3Event, String> {
             fileValidator(s3Client, s3FileName, lines);
             System.out.println("Parsing done!!");
             updateJobStatus(s3FileName);
-            String parsedFileUrl = "https://climatechange-parsed-files.s3.amazonaws.com/" + s3FileName;
-            sendSQSMessage(parsedFileUrl, s3FileName);
+            String message = "https://climatechange-parsed-files.s3.amazonaws.com/" + s3FileName
+                    + "," + s3FileName;
+            sendSQSMessage(sqsQueues.get("import_q"), message);
         } catch(Exception ex) {
             System.out.println("error-- "+ ex);
         }
@@ -56,27 +52,46 @@ public class App implements RequestHandler<S3Event, String> {
     }
 
     private void updateJobStatus(String s3FileName) {
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-        Table table = dynamoDB.getTable("FilePartitions");
-        Map<String, Object> expressionAttributeValuesParsed = new HashMap<>();
-        expressionAttributeValuesParsed.put(":val1", "parsed");
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put("#F", "FileStatus");
-        UpdateItemOutcome res =  table.updateItem(
-                "PartitionID",
-                s3FileName,
-                "set #F = :val1",
-                expressionAttributeNames,
-                expressionAttributeValuesParsed);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("Op", "update_item");
+        payload.put("Table", "FilePartitions");
+
+        Map<String,String> keyHashMap = new HashMap<>();
+        keyHashMap.put("PartitionID", s3FileName);
+        payload.put("Key", keyHashMap);
+        payload.put("UpdateExpression", "SET FileStatus = :status");
+
+        Map<String,String> expressionAttsHashMap = new HashMap<>();
+        expressionAttsHashMap.put(":status", "parsed");
+        payload.put("Key", keyHashMap);
+        payload.put("ExpressionAttributeValues", expressionAttsHashMap);
+        JSONObject json = new JSONObject(payload);
+        sendSQSMessageToFIFO(sqsQueues.get("status_q"), json.toString());
     }
 
-    private void sendSQSMessage(String parsedFileUrl, String partitionId) {
-        String queueUrl = "https://sqs.us-east-1.amazonaws.com/967866184802/import_queue";
+
+    private Map<String,String> sqsQueues = new HashMap<String, String>() {
+        {
+            put("import_q", "https://sqs.us-east-1.amazonaws.com/967866184802/import_queue");
+            put("status_q", "https://sqs.us-east-1.amazonaws.com/967866184802/status_queue.fifo");
+        }
+    };
+
+
+    private void sendSQSMessage(String queueUrl, String payload) {
         final AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
         sqs.sendMessage(new SendMessageRequest(queueUrl,
-                parsedFileUrl+","+partitionId));
+                payload));
 
+    }
+
+    private void sendSQSMessageToFIFO(String queueUrl, String payload) {
+        final AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+        SendMessageRequest sendMessageRequest = new SendMessageRequest(queueUrl,
+                payload);
+        sendMessageRequest.setMessageGroupId("status_update");
+        sendMessageRequest.setMessageDeduplicationId(java.util.UUID.randomUUID().toString());
+        sqs.sendMessage(sendMessageRequest);
     }
 
     public void fileValidator(AmazonS3 s3Client, String fname, List<String> fileData) throws IOException {
@@ -128,4 +143,5 @@ public class App implements RequestHandler<S3Event, String> {
         }
         return allLines;
     }
+
 }
