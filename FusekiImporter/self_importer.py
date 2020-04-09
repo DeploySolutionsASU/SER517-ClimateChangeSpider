@@ -1,3 +1,4 @@
+import subprocess
 import time
 import boto3
 import urllib.request
@@ -36,6 +37,7 @@ def delete_msg(receipt_handle):
         ReceiptHandle=receipt_handle
     )
     print(response)
+    # return True
 
 
 def download_file(obj_name, file_path):
@@ -80,6 +82,7 @@ def make_http_post_request(url, partition_id, payload=None, headers=default_head
     except Exception as ex:
         print("Exception: ", str(ex))
         update_job_status(partition_id, "Failed")
+        restart()
 
     else:
         update_job_status(partition_id, "Imported")
@@ -102,22 +105,45 @@ def delete_file(file_path):
 
 
 def handle_message(s3_url, partition_id):
-    file_path = "/tmp/"+partition_id
-    download_file(partition_id, file_path)
-    import_data_to_fuseki("test_data_set", file_path, partition_id)
-    delete_file(file_path)
+    try:
+        file_path = "/tmp/"+partition_id
+        download_file(partition_id, file_path)
+        import_data_to_fuseki("test_data_set", file_path, partition_id)
+        delete_file(file_path)
+    except Exception as ex:
+        print(ex)
+        return False
+    else:
+        return True
+
+
+def run_command(command):
+    file_output = subprocess.Popen(command,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+    return iter(file_output.stdout.readline, b'')
+
+
+def restart():
+    run_command("sh restart.sh".split())
+    time.sleep(20)
 
 
 if __name__ == '__main__':
+    i = 0
     while True:
         msgs = receive_msg(10)
         print(msgs)
         if msgs is not None:
             for msg in msgs:
+
                 s3_url, partition_id = msg[u'Body'].split(",")
                 receipt_handle = msg[u'ReceiptHandle']
                 handle_message(s3_url, partition_id)
                 delete_msg(receipt_handle)
+                if i % 100 == 0:
+                    restart()
+                i += 1
+                print("i value is ", i)
 
-        time.sleep(2)
 
