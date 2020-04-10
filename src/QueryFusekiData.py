@@ -4,6 +4,7 @@ import sys
 from requests import post as POST
 
 #from ElasticSearchManager import create_bulk_index
+from ElasticSearchManager import create_bulk_index
 
 default_headers = {"Content-Type": "application/json"}
 fuseki_url_template = '{protocol}://{ip_address}:{port_number}/{data_set_name}'
@@ -338,13 +339,13 @@ def generate_result(data_set):
 
             # Write every 100 line to a new json file to send it as an input to elastic search
             if line / 100 == 1 or line == end - 1:
-                outfile = open(val+str(id)+'.json', "w")
+                file_name = val+str(id)+'.json'
+                outfile = open(file_name, "w")
                 outfile.write(temp_entry)
                 temp_entry = ""
                 processed_entry = {}
                 outfile.close()
-
-
+                create_bulk_index(val.lower(), file_name)
 
 
 if __name__ == '__main__':
