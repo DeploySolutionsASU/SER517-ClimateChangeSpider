@@ -40,6 +40,49 @@ def string_to_json(response_str):
         print("JsonParsing Error: ", error, file=sys.stderr)
 
 
+def generate_result(data_set):
+    url = build_url(data_set=data_set)
+    query_types = ['Article', 'Organization', 'Event', 'Website']
+    for val in query_types:
+        if val == 'Article':
+            query = article
+        elif val == 'Organization':
+            query = organization
+        elif val == 'Event':
+            query = event
+        elif val == 'Website':
+            query = website
+
+        response = make_http_post_request(url, payload={"query": query},
+                                          headers={'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
+        temp_entry = ''
+        id = 1
+        processed_entry = {}
+        end = len(response['results']['bindings'])
+        entry = response['results']['bindings']
+
+        # Adding indexes to query response
+        for line in range(0, end):
+            test =  '{ "index" : { "_index" : "'+val.lower()+'", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
+            for i in entry[line]:
+                kval = entry[line][i]["value"]
+                processed_entry[i] = kval
+            temp_entry += test + json.dumps(processed_entry) + '\n'
+            id +=1
+
+            # Write every 100 line to a new json file to send it as an input to elastic search
+            if line % 100 == 0 or line == end - 1:
+                file_name = val+str(id)+'.json'
+                outfile = open(file_name, "w")
+                outfile.write(temp_entry)
+                temp_entry = ""
+                processed_entry = {}
+                outfile.close()
+                create_bulk_index(val.lower(), file_name)
+
+
+
+
 article = """PREFIX prefix: <http://prefix.cc/>
 SELECT distinct ?g ?url ?image ?title ?author ?date_modified ?date_published ?article_section ?comment ?headline ?part_of ?main_page ?value_of_desc 
 WHERE { 
@@ -306,46 +349,6 @@ WHERE {
 LIMIT 2000
 """
 
-
-def generate_result(data_set):
-    url = build_url(data_set=data_set)
-    query_types = ['Article', 'Organization', 'Event', 'Website']
-    for val in query_types:
-        if val == 'Article':
-            query = article
-        elif val == 'Organization':
-            query = organization
-        elif val == 'Event':
-            query = event
-        elif val == 'Website':
-            query = website
-
-        response = make_http_post_request(url, payload={"query": query},
-                                          headers={'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
-        temp_entry = ''
-        id = 1
-        processed_entry = {}
-        end = len(response['results']['bindings'])
-        entry = response['results']['bindings']
-
-        # Adding indexes to query response
-        for line in range(0, end):
-            test =  '{ "index" : { "_index" : "'+val.lower()+'", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
-            for i in entry[line]:
-                kval = entry[line][i]["value"]
-                processed_entry[i] = kval
-            temp_entry += test + json.dumps(processed_entry) + '\n'
-            id +=1
-
-            # Write every 100 line to a new json file to send it as an input to elastic search
-            if line / 100 == 1 or line == end - 1:
-                file_name = val+str(id)+'.json'
-                outfile = open(file_name, "w")
-                outfile.write(temp_entry)
-                temp_entry = ""
-                processed_entry = {}
-                outfile.close()
-                create_bulk_index(val.lower(), file_name)
 
 
 if __name__ == '__main__':
