@@ -26,7 +26,7 @@ $(document).ready(function () {
               }
         }
 
-        console.log(getQuery(selectedLevels[0], selectedKeywords))
+        //console.log(getQuery(selectedLevels[0], selectedKeywords))
         document.getElementById("all_results").innerHTML = "";
 
         if(selectedLevels.length > 0 && selectedKeywords.length > 0) {
@@ -403,15 +403,14 @@ function formatTableColumn(columnName) {
 function elasticSearchResult(searchLevel, sectionName, keywords) {
     let list_keywords = "";
     keywords.forEach(function (words) {
-        list_keywords += words + " "
+        list_keywords += "("+ words + ")" + " OR "
     })
 
     list_keywords = list_keywords.trim()
     const data = {
         "query": {
-            "multi_match": {
-                "query": list_keywords,
-                "fields": ["value_of_desc", "g"]
+            "query_string": {
+                "query": "*"
             }
         }
     };
