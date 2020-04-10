@@ -35,8 +35,7 @@ $(document).ready(function () {
             for (var j = 0; j < selectedLevels.length; j++) {
                 var sectionName = "section"+j
                 addNewResultSection(sectionName, selectedLevels[j])
-                debugger;
-                elasticSearchResult(selectedLevels[j].toLowerCase(), selectedKeywords);
+                elasticSearchResult(selectedLevels[j].toLowerCase(), sectionName, selectedKeywords);
                 // fetch(getQuery(selectedLevels[j], selectedKeywords), sectionName, selectedLevels[j])
             }
         } else {
@@ -313,13 +312,17 @@ WHERE {
   `
 };
 
+
+
 function convertJsonToTable(data, searchLevel) {
     let i;
-    const cols = [];
-    const cols_json = data.head.vars;
-    for (i = 0; i < cols_json.length; i++) {
-        cols.push(cols_json[i]);
+    const cols = []
+    const cols_json = data.hits.hits;
+
+    for(colum in cols_json[0]["_source"]) {
+        cols.push(colum);
     }
+    debugger;
 
     // Create a table element
     const table = document.createElement("table");
@@ -331,20 +334,13 @@ function convertJsonToTable(data, searchLevel) {
     for (i = 0; i < cols.length; i++) {
         // Create the table header th element
         const theader = document.createElement("th");
-
-        if(i == 2) {
-            theader.innerHTML = formatTableColumn(cols[cols.length - 1]);
-        } else if (i == cols.length - 1) {
-             theader.innerHTML = formatTableColumn(cols[2]);
-        } else {
-            theader.innerHTML = formatTableColumn(cols[i]);
-        }
+        theader.innerHTML = formatTableColumn(cols[i]);
         // Append columnName to the table row
         tr.appendChild(theader);
     }
 
     // Adding the data to the table
-    const list = data.results.bindings;
+    const list = cols_json;
     let trow;
     for (i = 0; i < list.length; i++) {
         // Create a new row
@@ -352,32 +348,25 @@ function convertJsonToTable(data, searchLevel) {
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-            if (j == 2) {
-                if (list[i][cols[cols.length - 1]] != null) {
-                    const content = formatTableColumn(list[i][cols[cols.length - 1]]["value"]);
+             if (j != 0) {
+                if (list[i]["_source"] != null) {
+                    const content = (list[i]['_source'][cols[j]]);
                     formatContent(cell, content);
                 } else {
                     cell.innerHTML = "N/A"
                 }
-            } else if (j == cols.length - 1) {
-                if (list[i][cols[2]] != null) {
-                    const content = formatTableColumn(list[i][cols[2]]["value"]);
-                    formatContent(cell, content)
-                } else {
-                    cell.innerHTML = "N/A"
-                }
             } else {
-                if (list[i][cols[j]] != null) {
+                 if (list[i]['_source'][cols[j]]!= null) {
                     if (j == 0) {
-                        cell.innerHTML = '<a target="_blank" href="' + list[i][cols[j]]["value"] + '">' + list[i][cols[j]]["value"] + '</a>';
+                        cell.innerHTML = '<a target="_blank" href="' + list[i]['_source'][cols[j]] + '">' + list[i]['_source'][cols[j]] + '</a>';
                     } else {
-                        const content = formatTableColumn(list[i][cols[j]]["value"]);
+                        const content = formatTableColumn(list[i]['_source'][cols[j]]);
                         formatContent(cell, content)
                     }
                 } else {
                     cell.innerHTML = "N/A"
                 }
-            }
+             }
             cell.style.wordWrap = "break-word"
         }
     }
@@ -398,69 +387,26 @@ function formatContent(cell, content) {
 
 function formatTableColumn(columnName) {
     let formattedName = "";
-    columnName.split('_').forEach(function(item){
-         formattedName += (item.charAt(0).toUpperCase() + item.slice(1));
-         formattedName += " ";
-    });
-    return formattedName;
-}
-
-function getQuery(selectedLevel, keywords) {
-    console.log("selectedLevel", selectedLevel)
-    let baseQuery = queryType[selectedLevel];
-    baseQuery += ' FILTER('
-    for (let i = 0; i < keywords.length; i++) {
-        if (i != keywords.length - 1) {
-            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '") || '
-        }
-        else {
-            baseQuery += 'CONTAINS(str(?value_of_desc), "' + keywords[i] + '"))}'
-        }
+    debugger;
+    if(columnName.includes('_')) {
+        columnName.split('_').forEach(function (item) {
+            formattedName += (item.charAt(0).toUpperCase() + item.slice(1));
+            formattedName += " ";
+        });
+        return formattedName;
     }
-    return baseQuery
+    else {
+        return  columnName
+    }
 }
 
-function fetch(query, containerID, searchLevel) {
-    const encodedStr = encodeURIComponent(query);
-    const queryURL = "http://localhost:3030/test_data_set/query?query=" + encodedStr;
-    executeQuery(queryURL, containerID, searchLevel)
-}
-
-function executeQuery(query, containerId, searchLevel) {
-    $.post(query, {},
-        function (data, status) {
-            searchResults[searchLevel] = data
-            console.log("Data: " + JSON.stringify(searchResults)  + "\nStatus: " + status);
-            const table = convertJsonToTable(data, searchLevel);
-            table.classList.add("table");
-            const sectionCount = document.createElement("p");
-            sectionCount.innerHTML = searchLevel + " Count: " + data.results.bindings.length;
-            document.getElementById(containerId).appendChild(sectionCount);
-            const btnToggle = document.createElement("button");
-            btnToggle.className = "btn btn-info";
-            btnToggle.innerText = searchLevel + " Results";
-            btnToggle.style.marginBottom = "10px";
-            btnToggle.setAttribute("data-toggle", "collapse");
-            btnToggle.setAttribute("data-target", "#"+searchLevel);
-            document.getElementById(containerId).appendChild(btnToggle);
-            document.getElementById(containerId).appendChild(table);
-            const hrline = document.createElement("hr");
-            document.getElementById(containerId).appendChild(hrline);
-            if (Object.keys(searchResults).length == selectedLevels.length) {
-                $('.loader').hide();
-                $('#resultBtn').show();
-            }
-        })
-}
-
-function elasticSearchResult(search_index, keywords) {
+function elasticSearchResult(searchLevel, sectionName, keywords) {
     let list_keywords = "";
     keywords.forEach(function (words) {
         list_keywords += words + " "
     })
 
     list_keywords = list_keywords.trim()
-    debugger;
     const data = {
         "query": {
             "multi_match": {
@@ -473,7 +419,7 @@ function elasticSearchResult(search_index, keywords) {
     // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
     $.ajax({
       method: "POST",
-      url: "http://localhost:9200/"+search_index+"/_search?pretty",
+      url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
       crossDomain: true,
       async: false,
       data: JSON.stringify(data),
@@ -481,9 +427,36 @@ function elasticSearchResult(search_index, keywords) {
       contentType: 'application/json',
     })
     .done(function( data ) {
-      console.log(data);
+        debugger;
+        if(data.hits.hits.length > 0) {
+            searchResults[searchLevel] = data
+            console.log("Data: " + JSON.stringify(searchResults) + "\nStatus: " + status);
+            const table = convertJsonToTable(data, searchLevel);
+            table.classList.add("table");
+            const sectionCount = document.createElement("p");
+            sectionCount.innerHTML = searchLevel + " Count: " + data.hits.hits.length;
+            document.getElementById(sectionName).appendChild(sectionCount);
+            const btnToggle = document.createElement("button");
+            btnToggle.className = "btn btn-info";
+            btnToggle.innerText = searchLevel + " Results";
+            btnToggle.style.marginBottom = "10px";
+            btnToggle.setAttribute("data-toggle", "collapse");
+            btnToggle.setAttribute("data-target", "#" + searchLevel);
+            document.getElementById(sectionName).appendChild(btnToggle);
+            document.getElementById(sectionName).appendChild(table);
+            const hrline = document.createElement("hr");
+            document.getElementById(sectionName).appendChild(hrline);
+            if (Object.keys(searchResults).length == selectedLevels.length) {
+                $('.loader').hide();
+                $('#resultBtn').show();
+            }
+            console.log(data);
+        }
     })
     .fail(function( data ) {
+        searchResults[searchLevel] = data
+        debugger
+        $('.loader').hide();
       console.log(data);
     });
 
