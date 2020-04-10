@@ -30,11 +30,14 @@ $(document).ready(function () {
         document.getElementById("all_results").innerHTML = "";
 
         if(selectedLevels.length > 0 && selectedKeywords.length > 0) {
+
             $('.loader').show();
             for (var j = 0; j < selectedLevels.length; j++) {
                 var sectionName = "section"+j
                 addNewResultSection(sectionName, selectedLevels[j])
-                fetch(getQuery(selectedLevels[j], selectedKeywords), sectionName, selectedLevels[j])
+                debugger;
+                elasticSearchResult(selectedLevels[j].toLowerCase(), selectedKeywords);
+                // fetch(getQuery(selectedLevels[j], selectedKeywords), sectionName, selectedLevels[j])
             }
         } else {
             alert("Please check the keywords or select alteast one search level!");
@@ -448,4 +451,40 @@ function executeQuery(query, containerId, searchLevel) {
                 $('#resultBtn').show();
             }
         })
+}
+
+function elasticSearchResult(search_index, keywords) {
+    let list_keywords = "";
+    keywords.forEach(function (words) {
+        list_keywords += words + " "
+    })
+
+    list_keywords = list_keywords.trim()
+    debugger;
+    const data = {
+        "query": {
+            "multi_match": {
+                "query": list_keywords,
+                "fields": ["value_of_desc", "g"]
+            }
+        }
+    };
+
+    // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
+    $.ajax({
+      method: "POST",
+      url: "http://localhost:9200/"+search_index+"/_search?pretty",
+      crossDomain: true,
+      async: false,
+      data: JSON.stringify(data),
+      dataType : 'json',
+      contentType: 'application/json',
+    })
+    .done(function( data ) {
+      console.log(data);
+    })
+    .fail(function( data ) {
+      console.log(data);
+    });
+
 }
