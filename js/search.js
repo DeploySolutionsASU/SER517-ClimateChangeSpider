@@ -322,7 +322,6 @@ function convertJsonToTable(data, searchLevel) {
     for(colum in cols_json[0]["_source"]) {
         cols.push(colum);
     }
-    debugger;
 
     // Create a table element
     const table = document.createElement("table");
@@ -387,7 +386,6 @@ function formatContent(cell, content) {
 
 function formatTableColumn(columnName) {
     let formattedName = "";
-    debugger;
     if(columnName.includes('_')) {
         columnName.split('_').forEach(function (item) {
             formattedName += (item.charAt(0).toUpperCase() + item.slice(1));
@@ -396,7 +394,7 @@ function formatTableColumn(columnName) {
         return formattedName;
     }
     else {
-        return  columnName
+        return  upperCamelCase(columnName)
     }
 }
 
@@ -432,31 +430,56 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
             console.log("Data: " + JSON.stringify(searchResults) + "\nStatus: " + status);
             const table = convertJsonToTable(data, searchLevel);
             table.classList.add("table");
-            const sectionCount = document.createElement("p");
-            sectionCount.innerHTML = searchLevel + " Count: " + data.hits.hits.length;
-            document.getElementById(sectionName).appendChild(sectionCount);
-            const btnToggle = document.createElement("button");
-            btnToggle.className = "btn btn-info";
-            btnToggle.innerText = searchLevel + " Results";
-            btnToggle.style.marginBottom = "10px";
-            btnToggle.setAttribute("data-toggle", "collapse");
-            btnToggle.setAttribute("data-target", "#" + searchLevel);
-            document.getElementById(sectionName).appendChild(btnToggle);
-            document.getElementById(sectionName).appendChild(table);
-            const hrline = document.createElement("hr");
-            document.getElementById(sectionName).appendChild(hrline);
+
             if (Object.keys(searchResults).length == selectedLevels.length) {
                 $('.loader').hide();
                 $('#resultBtn').show();
             }
             console.log(data);
+            databinding(sectionName, searchLevel, data);
+            document.getElementById(sectionName).appendChild(table);
+            const hrline = document.createElement("hr");
+            document.getElementById(sectionName).appendChild(hrline);
         }
     })
     .fail(function( data ) {
+        debugger;
         searchResults[searchLevel] = data
-        debugger
         $('.loader').hide();
-      console.log(data);
+        const msg = document.createElement("p");
+        msg.innerText = "No data!";
+        msg.id = searchLevel;
+        databinding(sectionName, searchLevel, data);
+        document.getElementById(sectionName).appendChild(msg);
+        const hrline = document.createElement("hr");
+        document.getElementById(sectionName).appendChild(hrline);
     });
-
 }
+
+function databinding(sectionName, searchLevel, data) {
+        const sectionCount = document.createElement("p");
+        if(data.hits != undefined) {
+            sectionCount.innerHTML = upperCamelCase(searchLevel) + " Count: " + data.hits.hits.length;
+        } else {
+            sectionCount.innerHTML = upperCamelCase(searchLevel) + " Count: " + 0;
+        }
+        document.getElementById(sectionName).appendChild(sectionCount);
+        const btnToggle = document.createElement("button");
+        btnToggle.className = "btn btn-info";
+        btnToggle.innerText = upperCamelCase(searchLevel) + " Results";
+        btnToggle.style.marginBottom = "10px";
+        btnToggle.setAttribute("data-toggle", "collapse");
+        btnToggle.setAttribute("data-target", "#" + searchLevel);
+        document.getElementById(sectionName).appendChild(btnToggle);
+}
+
+ /**
+ * Method to convert normal string to upper camel case
+ * @param str
+ * @returns {string}
+ */
+ function upperCamelCase(str) {
+        return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+            return word.toUpperCase();
+        }).replace(/\s+/g, '');
+ }
