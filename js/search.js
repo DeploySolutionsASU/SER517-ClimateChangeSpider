@@ -349,7 +349,13 @@ function convertJsonToTable(data, searchLevel) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
              if (j != 0) {
-                if (list[i]["_source"] != null) {
+                 if (j == 1){
+                    if (list[i]["_source"] != null) {
+                        const content = (list[i]['_source'][cols[j]]);
+                        addToolTip(cell, content);
+                    } 
+                 }
+                else if (list[i]["_source"] != null) {
                     const content = (list[i]['_source'][cols[j]]);
                     formatContent(cell, content);
                 } else {
@@ -383,6 +389,18 @@ function formatContent(cell, content) {
         } else {
             cell.innerHTML = content
         }
+}
+
+function addToolTip(cell, content) {
+    if(content.length > 40) {
+        const lessContent = content.substring(0, 40);
+        const moreContent = content.substring(40, content.length);
+        cell.innerHTML = '<span>'+ lessContent +'</span>' + '<span style="display: none" class="more">'+moreContent+'</span>'
+          + '<div class="readMoreCls" title="'+content+'" onclick="readMore(this)" id="readMore">read more..</div>'
+          + '<div style="display: none" onclick="readLess(this)" id="readLess" class="readLessCls">read less</div>'
+      } else {
+          cell.innerHTML = content
+      }
 }
 
 function formatTableColumn(columnName) {
