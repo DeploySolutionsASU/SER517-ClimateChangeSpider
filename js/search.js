@@ -42,6 +42,8 @@ $(document).ready(function () {
             alert("Please check the keywords or select alteast one search level!");
         }
     });
+
+
 });
 
 function readMore(current) {
@@ -325,7 +327,7 @@ function convertJsonToTable(data, searchLevel) {
 
     // Create a table element
     const table = document.createElement("table");
-    table.class = "collapse in";
+    // table.class = "collapse";
     table.id = searchLevel;
 
     // Create table row tr element of a table
@@ -424,12 +426,12 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
       contentType: 'application/json',
     })
     .done(function( data ) {
-        debugger;
         if(data.hits.hits.length > 0) {
             searchResults[searchLevel] = data
             console.log("Data: " + JSON.stringify(searchResults) + "\nStatus: " + status);
             const table = convertJsonToTable(data, searchLevel);
             table.classList.add("table");
+            table.classList.add("collapse");
 
             if (Object.keys(searchResults).length == selectedLevels.length) {
                 $('.loader').hide();
@@ -438,39 +440,51 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
             console.log(data);
             databinding(sectionName, searchLevel, data);
             document.getElementById(sectionName).appendChild(table);
-            const hrline = document.createElement("hr");
-            document.getElementById(sectionName).appendChild(hrline);
         }
     })
     .fail(function( data ) {
-        debugger;
         searchResults[searchLevel] = data
         $('.loader').hide();
         const msg = document.createElement("p");
         msg.innerText = "No data!";
         msg.id = searchLevel;
+        msg.classList.add("collapse");
+        msg.style.marginLeft = "50%";
         databinding(sectionName, searchLevel, data);
         document.getElementById(sectionName).appendChild(msg);
-        const hrline = document.createElement("hr");
-        document.getElementById(sectionName).appendChild(hrline);
+         if (Object.keys(searchResults).length == selectedLevels.length) {
+                $('#resultBtn').show();
+            }
     });
 }
 
 function databinding(sectionName, searchLevel, data) {
-        const sectionCount = document.createElement("p");
-        if(data.hits != undefined) {
-            sectionCount.innerHTML = upperCamelCase(searchLevel) + " Count: " + data.hits.hits.length;
-        } else {
-            sectionCount.innerHTML = upperCamelCase(searchLevel) + " Count: " + 0;
-        }
-        document.getElementById(sectionName).appendChild(sectionCount);
         const btnToggle = document.createElement("button");
-        btnToggle.className = "btn btn-info";
-        btnToggle.innerText = upperCamelCase(searchLevel) + " Results";
+        btnToggle.className = "btn btn-info dropdown";
+        btnToggle.id = "toggleBtn";
+        btnToggle.style.marginLeft = "15%";
+        btnToggle.style.marginBottom = "20px";
+        btnToggle.style.width = "75%";
+        btnToggle.addEventListener("click", toggleClass, false);
+
+        if(data.hits != undefined) {
+            btnToggle.innerText = upperCamelCase(searchLevel) + " ("+ data.hits.hits.length + ")";
+        } else {
+            btnToggle.innerText = upperCamelCase(searchLevel) + " ("+ 0 + ")";
+        }
+
         btnToggle.style.marginBottom = "10px";
         btnToggle.setAttribute("data-toggle", "collapse");
         btnToggle.setAttribute("data-target", "#" + searchLevel);
+        const iTag = document.createElement("i");
+        iTag.id = "arrowID";
+        iTag.className = "arrowDown";
+        btnToggle.appendChild(iTag);
         document.getElementById(sectionName).appendChild(btnToggle);
+}
+
+function toggleClass() {
+    $(this).find('#arrowID').toggleClass("arrowDown arrowUp");
 }
 
  /**
