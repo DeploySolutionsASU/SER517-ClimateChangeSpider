@@ -1,62 +1,59 @@
 function convertToCSV(objArray) {
     var csv = "";
     objArray.forEach(function (row) {
+        debugger;
         csv += row.join(',');
         csv += "\n";
     });
+    
 
     return csv;
 }
 
 
-function getRowItems(response) {
-	var resultList = []
-	//safest way to parse a JSON
-	var jsonData=response;
-	//head variable anyway a list.
-	var headList = jsonData.head.vars;
-    resultList.push(headList);
-    //started parsing
-    var rows = jsonData.results.bindings
 
-    // iterating all the rows from the result json
-    for (var i = 0; i < rows.length; i++) {
-        // Create a new row 
+function getRowItems(response) {
+    var resultList = []
+    var cols = []
+    debugger;
+    if(response["hits"] != undefined)
+    {
+            const cols_json = response["hits"]["hits"]
+
+    for (colum in cols_json[0]["_source"]) {
+        cols.push(colum);
+    }
+    resultList.push(cols)
+    for (i = 0; i < cols_json.length; i++) {
         var currentRow = []
-        // iterating all the headers
-        for (var j = 0; j < headList.length; j++) {
-            if (rows[i][headList[j]] != null) {
-                //updating row with binding value
-                currentRow.push(rows[i][headList[j]].value)
-            } else {
-                currentRow.push("N/A")
-            }
+        for (let j = 0; j < cols.length; j++) {
+                if (cols_json[i]["_source"] != null) {
+                    var r = cols_json[i]['_source'][cols[j]]
+                    currentRow.push(r.replace(/,/g, ';'));
+                } else {
+                    currentRow.push("N/A");
+                }
+
+
         }
         resultList.push(currentRow)
     }
-	return resultList;
+    }
+    return resultList;
 }
 
 
 function exportCSVFile(items, fileTitle) {
-
-    var csv = this.convertToCSV(items);
-    var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
-
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        var link = document.createElement("a");
-        if (link.download !== undefined) { // feature detection
-            // Browsers that support HTML5 download attribute
-            var url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    if(items.length > 0) {
+        var csv = this.convertToCSV(items);
+        var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = exportedFilenmae;
+        hiddenElement.click();
     }
+
 }
+
+
