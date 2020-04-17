@@ -433,7 +433,6 @@ function addToolTip(cell, content) {
 function embedUrlInTitle(cell, content, url) {
     if(content.length > 40) {
         const lessContent = content.substring(0, 40);
-        // const moreContent = content.substring(40, content.length);
         cell.innerHTML = '<span id="less">'+'<a href= "'+url+'" target="_blank">'+ lessContent + '</a>'+'</span>' + '<span style="display: none" class="more">'+'<a href= "'+url+'" target="_blank">'+ content + '</a>'+'</span>'
           + '<div class="readMoreCls" title="'+content+'" onclick="readMoreTitle(this)" id="readMore">read more..</div>'
           + '<div style="display: none" onclick="readLessTitle(this)" id="readLess" class="readLessCls">read less</div>'
