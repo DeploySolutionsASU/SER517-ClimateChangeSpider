@@ -58,6 +58,22 @@ function readMore(current) {
     $(current).parent().find('#readMore').show();
 }
 
+function readMoreTitle(current) {
+    $(current).hide();
+    $(current).parent().find('.more').show();
+    $(current).parent().find('#readLess').show();
+    $(current).parent().find('#less').hide();
+}
+
+ function readLessTitle(current) {
+    $(current).hide();
+    $(current).parent().find('.more').hide();
+    $(current).parent().find('#readMore').show();
+    $(current).parent().find('#less').show();
+}
+
+
+
 function addNewResultSection(sectionName, searchLevel) {
     const section = document.createElement("div");
     section.id = sectionName
@@ -349,11 +365,21 @@ function convertJsonToTable(data, searchLevel) {
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-             if (j != 0) {
-                 if (j == 1){
+             if (cols[j] != "g") {
+                 debugger;
+                 if (cols[j] == "url"){
+                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
                         addToolTip(cell, content);
+                    } 
+                 }
+                 else if (cols[j] == "title"){
+                     debugger;
+                    if (list[i]["_source"] != null) {
+                        const content = (list[i]['_source'][cols[j]]);
+                        const url = (list[i]['_source']['g']);
+                        embedUrlInTitle(cell, content, url);
                     } 
                  }
                 else if (list[i]["_source"] != null) {
@@ -401,6 +427,18 @@ function addToolTip(cell, content) {
           + '<div style="display: none" onclick="readLess(this)" id="readLess" class="readLessCls">read less</div>'
       } else {
           cell.innerHTML = content
+      }
+}
+
+function embedUrlInTitle(cell, content, url) {
+    if(content.length > 40) {
+        const lessContent = content.substring(0, 40);
+        // const moreContent = content.substring(40, content.length);
+        cell.innerHTML = '<span id="less">'+'<a href= "'+url+'" target="_blank">'+ lessContent + '</a>'+'</span>' + '<span style="display: none" class="more">'+'<a href= "'+url+'" target="_blank">'+ content + '</a>'+'</span>'
+          + '<div class="readMoreCls" title="'+content+'" onclick="readMoreTitle(this)" id="readMore">read more..</div>'
+          + '<div style="display: none" onclick="readLessTitle(this)" id="readLess" class="readLessCls">read less</div>'
+      } else {
+          cell.innerHTML = '<a href= "'+url+'" target="_blank">'+ content + '</a>'
       }
 }
 
