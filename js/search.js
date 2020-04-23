@@ -366,16 +366,13 @@ function convertJsonToTable(data, searchLevel) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
              if (cols[j] != "g") {
-                 debugger;
                  if (cols[j] == "url"){
-                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
                         addToolTip(cell, content);
                     } 
                  }
                  else if (cols[j] == "title"){
-                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
                         const url = (list[i]['_source']['g']);
@@ -457,15 +454,39 @@ function formatTableColumn(columnName) {
 
 function elasticSearchResult(searchLevel, sectionName, keywords) {
     let list_keywords = "";
+    let multi_word = "";
+    let single_word = "";
     keywords.forEach(function (words) {
-        list_keywords += "("+ words + ")" + " OR "
+        let sub_words = words.split(" ");
+        if(sub_words.length > 1) {
+            multi_word += "("
+            for (let i=0;i<sub_words.length;i++) {
+                if(i != sub_words.length - 1) {
+                     multi_word += sub_words[i] + " AND ";
+                } else {
+                     multi_word += sub_words[i] + ")"
+                }
+            }
+        } else {
+            for (let i=0;i<sub_words.length;i++) {
+                 if(multi_word.length > 0) {
+                     single_word += " OR " + sub_words[i];
+                } else {
+                     single_word += " " +sub_words[i];
+                }
+            }
+        }
     })
 
+    list_keywords = multi_word + single_word;
     list_keywords = list_keywords.trim()
+    console.log(list_keywords);
+    const field_name = "value_of_desc";
     const data = {
         "query": {
             "query_string": {
-                "query": "*"
+                "query": list_keywords,
+                "default_field" : field_name
             }
         }
     };
