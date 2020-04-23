@@ -346,12 +346,16 @@ function convertJsonToTable(data, searchLevel) {
     // table.class = "collapse";
     table.id = searchLevel;
 
+
     // Create table row tr element of a table
     const tr = table.insertRow(-1);
     for (i = 0; i < cols.length; i++) {
         // Create the table header th element
         const theader = document.createElement("th");
         theader.innerHTML = formatTableColumn(cols[i]);
+        theader.addEventListener("click", sortTableColumn, false);
+        theader.style.cursor = "pointer";
+
         // Append columnName to the table row
         tr.appendChild(theader);
     }
@@ -366,21 +370,18 @@ function convertJsonToTable(data, searchLevel) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
              if (cols[j] != "g") {
-                 debugger;
                  if (cols[j] == "url"){
-                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
                         addToolTip(cell, content);
-                    } 
+                    }
                  }
                  else if (cols[j] == "title"){
-                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
                         const url = (list[i]['_source']['g']);
                         embedUrlInTitle(cell, content, url);
-                    } 
+                    }
                  }
                 else if (list[i]["_source"] != null) {
                     const content = (list[i]['_source'][cols[j]]);
@@ -457,18 +458,45 @@ function formatTableColumn(columnName) {
 
 function elasticSearchResult(searchLevel, sectionName, keywords) {
     let list_keywords = "";
+    let multi_word = "";
+    let single_word = "";
     keywords.forEach(function (words) {
-        list_keywords += "("+ words + ")" + " OR "
+        let sub_words = words.split(" ");
+        if(sub_words.length > 1) {
+            multi_word += "("
+            for (let i=0;i<sub_words.length;i++) {
+                if(i != sub_words.length - 1) {
+                     multi_word += sub_words[i] + " AND ";
+                } else {
+                     multi_word += sub_words[i] + ")"
+                }
+            }
+        } else {
+            for (let i=0;i<sub_words.length;i++) {
+                 if(multi_word.length > 0) {
+                     single_word += " OR " + sub_words[i];
+                } else {
+                     single_word += " " +sub_words[i];
+                }
+            }
+        }
     })
 
+    list_keywords = multi_word + single_word;
     list_keywords = list_keywords.trim()
+    console.log(list_keywords);
+    const field_name = "value_of_desc";
     const data = {
         "query": {
             "query_string": {
-                "query": "*"
+                "query": list_keywords,
+                "default_field" : field_name
             }
         }
     };
+
+    debugger;
+    console.log(JSON.stringify(data));
 
     // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
     $.ajax({
@@ -551,4 +579,67 @@ function toggleClass() {
         return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
             return word.toUpperCase();
         }).replace(/\s+/g, '');
+ }
+
+
+/**
+ * Function to sort the table based on table header
+ */
+function sortTableColumn() {
+        let n = this.cellIndex;
+        let table;
+        let tableId = $(this).parent().parent().parent().attr('id');
+        table = document.getElementById(tableId);
+        let rows, i, x, y, count = 0;
+        let switching = true;
+        let direction = "asc";
+        let noChange = false;
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                var Switch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                if (direction == "asc") {
+                    if (x.innerText.toLowerCase() > y.innerText.toLowerCase())
+                        {
+                        Switch = true;
+                        noChange = true;
+                        break;
+                    }
+                } else if (direction == "desc") {
+                    if (x.innerText.toLowerCase() < y.innerText.toLowerCase())
+                        {
+                        Switch = true;
+                        noChange = true;
+                        break;
+                    }
+                }
+            }
+            if (Switch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                count++;
+            } else {
+                if (count == 0 && direction == "asc") {
+                    direction = "desc";
+                    switching = true;
+                }
+            }
+        }
+
+        if(noChange) {
+            $(this).parent().find('th').removeClass('sort-text-desc');
+            $(this).parent().find('th').removeClass('sort-text-asc');
+
+            if(direction == "asc") {
+                $(this).addClass('sort-text-asc');
+            } else if(direction == "desc") {
+                $(this).addClass('sort-text-desc');
+            }
+        }
  }

@@ -143,3 +143,11 @@
         transform: rotate(-135deg);
         -webkit-transform: rotate(-135deg);
     }
+
+    .sort-text-asc::after {
+        content: " (ASC) ";
+    }
+
+    .sort-text-desc::after {
+        content: " (DESC) ";
+    }
