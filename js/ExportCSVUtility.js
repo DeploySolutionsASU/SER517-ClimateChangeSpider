@@ -1,7 +1,6 @@
 function convertToCSV(objArray) {
     var csv = "";
     objArray.forEach(function (row) {
-        debugger;
         csv += row.join(',');
         csv += "\n";
     });
@@ -15,7 +14,6 @@ function convertToCSV(objArray) {
 function getRowItems(response) {
     var resultList = []
     var cols = []
-    debugger;
     if(response["hits"] != undefined)
     {
             const cols_json = response["hits"]["hits"]
