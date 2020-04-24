@@ -338,14 +338,14 @@ function convertJsonToTable(data, searchLevel) {
     const cols_json = data.hits.hits;
 
     for(colum in cols_json[0]["_source"]) {
-        cols.push(colum);
+        if(colum != "url") {
+            cols.push(colum);
+        }
     }
 
     // Create a table element
     const table = document.createElement("table");
-    // table.class = "collapse";
     table.id = searchLevel;
-
 
     // Create table row tr element of a table
     const tr = table.insertRow(-1);
@@ -369,21 +369,18 @@ function convertJsonToTable(data, searchLevel) {
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-             if (cols[j] != "g") {
+              if (cols[j] != "subject") {
                  if (cols[j] == "url"){
-                    if (list[i]["_source"] != null) {
-                        const content = (list[i]['_source'][cols[j]]);
-                        addToolTip(cell, content);
-                    }
+                   continue;
                  }
                  else if (cols[j] == "title"){
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
-                        const url = (list[i]['_source']['g']);
+                        const url = (list[i]['_source']['subject']);
                         embedUrlInTitle(cell, content, url);
                     }
                  }
-                else if (list[i]["_source"] != null) {
+                else if (list[i]["_source"] != null && (list[i]['_source'][cols[j]]) != null) {
                     const content = (list[i]['_source'][cols[j]]);
                     formatContent(cell, content);
                 } else {
@@ -391,12 +388,8 @@ function convertJsonToTable(data, searchLevel) {
                 }
             } else {
                  if (list[i]['_source'][cols[j]]!= null) {
-                    if (j == 0) {
-                        cell.innerHTML = '<a target="_blank" href="' + list[i]['_source'][cols[j]] + '">' + list[i]['_source'][cols[j]] + '</a>';
-                    } else {
-                        const content = formatTableColumn(list[i]['_source'][cols[j]]);
-                        formatContent(cell, content)
-                    }
+                     const content = (list[i]['_source'][cols[j]]);
+                     embedUrlInTitle(cell, content, content);
                 } else {
                     cell.innerHTML = "N/A"
                 }
@@ -485,8 +478,11 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
     list_keywords = multi_word + single_word;
     list_keywords = list_keywords.trim()
     console.log(list_keywords);
-    const field_name = "value_of_desc";
-    const data = {
+    const field_name = "match_keyword";
+    const start = 0;
+    const maxSize = 50;
+    const query_data = {
+        "from": start, "size":maxSize,
         "query": {
             "query_string": {
                 "query": list_keywords,
@@ -495,34 +491,40 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
         }
     };
 
-    debugger;
-    console.log(JSON.stringify(data));
 
     // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
     $.ajax({
       method: "POST",
-      url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
+        url: "https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com/" +searchLevel+"/_search?pretty",
+      //url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
       crossDomain: true,
       async: false,
-      data: JSON.stringify(data),
+      data: JSON.stringify(query_data),
       dataType : 'json',
       contentType: 'application/json',
     })
     .done(function( data ) {
-        if(data.hits.hits.length > 0) {
+        if(data.hits != undefined && data.hits.hits.length > 0) {
             searchResults[searchLevel] = data
-            console.log("Data: " + JSON.stringify(searchResults) + "\nStatus: " + status);
             const table = convertJsonToTable(data, searchLevel);
             table.classList.add("table");
             table.classList.add("collapse");
-
-            if (Object.keys(searchResults).length == selectedLevels.length) {
-                $('.loader').hide();
-                $('#resultBtn').show();
-            }
-            console.log(data);
             databinding(sectionName, searchLevel, data);
             document.getElementById(sectionName).appendChild(table);
+        } else {
+             searchResults[searchLevel] = data
+            const msg = document.createElement("p");
+            msg.innerText = "No data!";
+            msg.id = searchLevel;
+            msg.classList.add("collapse");
+            msg.style.marginLeft = "50%";
+            databinding(sectionName, searchLevel, data);
+            document.getElementById(sectionName).appendChild(msg);
+            }
+
+        if (Object.keys(searchResults).length == selectedLevels.length) {
+                $('.loader').hide();
+                $('#resultBtn').show();
         }
     })
     .fail(function( data ) {

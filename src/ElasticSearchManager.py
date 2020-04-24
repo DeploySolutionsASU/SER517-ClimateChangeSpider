@@ -12,7 +12,8 @@ def create_bulk_index(index_name, file_path):
     # Json file path
     data = open(file_path, 'rb').read()
     # Elastic search URL
-    url = 'http://localhost:9200/' + index_name + '/_doc/_bulk'
+    # AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
+    url = 'https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com/' + index_name + '/_doc/_bulk'
     response = requests.post(url, headers=headers, params=params, data=data)
 
     print(response)
