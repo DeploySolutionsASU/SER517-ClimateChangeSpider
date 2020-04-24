@@ -1,0 +1,24 @@
+package com.deploysolutions.searchApp;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+@Path("search")
+public class SearchControler {
+	
+	 @GET
+	    @Produces(MediaType.TEXT_PLAIN)
+	    public Response getStatus() {
+		 String json = "{\r\n" + 
+		 		"				 status : \"done\";\r\n" + 
+		 		"				 \r\n" + 
+		 		"		 }";
+		 
+		 
+		 return Response.ok(json, MediaType.APPLICATION_JSON).build();
+	    }
+
+}

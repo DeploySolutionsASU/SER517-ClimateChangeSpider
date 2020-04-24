@@ -1,0 +1,92 @@
+package com.deploysolutions.searchApp;
+
+import static org.elasticsearch.index.query.QueryBuilders.*;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+
+
+@Path("/searchC")
+public class SearchController {
+	
+	@POST
+    @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes("text/plain")
+ 	@Path("/search")
+ 	public String search(String query)  {
+		
+// 		System.out.println("QUERY ***********      "+query);
+//		StringBuilder sbResponse = new StringBuilder();
+//		
+//		JSONParser parser = new JSONParser(); 
+//		JSONObject json  = new JSONObject();
+//		
+//
+// 		try {
+// 			URL url = new URL ("http://localhost:9200/article/_search?pretty");
+//			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+//			con.setRequestMethod("POST");
+//			con.setRequestProperty("Content-Type", "text/plain");
+//			con.setRequestProperty("Accept", "text/plain");
+//			con.setDoOutput(true);
+//			OutputStream os = con.getOutputStream();
+//			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");    
+//			osw.write(query);
+//			osw.flush();
+//			osw.close();
+//			os.close();  //don't forget to close the OutputStream
+//			con.connect();
+//			
+// 		try(BufferedReader br = new BufferedReader(
+// 				  new InputStreamReader(con.getInputStream(), "utf-8"))) {
+// 				    String responseLine = null;
+// 				    while ((responseLine = br.readLine()) != null) {
+// 				        sbResponse.append(responseLine.trim());
+//
+// 				    }
+// 				}
+// 		
+//			 json = (JSONObject) parser.parse(sbResponse.toString());
+//
+//
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			System.out.println(e.getMessage());
+//			e.printStackTrace();
+//		}
+// 		System.out.println(json.toJSONString());
+// 			return json.toJSONString();
+		
+		
+		Settings settings = Settings.builder()
+		        .put("cluster.name", "elasticsearch").build();
+		TransportClient client = new PreBuiltTransportClient(settings);
+
+		
+
+ 	}
+
+}

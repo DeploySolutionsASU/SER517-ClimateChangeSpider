@@ -1,0 +1,70 @@
+package com.deploysolutions.searchApp;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Request;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+
+
+@Path("/searchC")
+public class SearchController {
+	
+ 	@GET
+    //@Produces(MediaType.APPLICATION_JSON)
+ 	@Path("/search")
+ 	public JSONObject search(Request request )  {
+		StringBuilder sbResponse = new StringBuilder();
+		
+		JSONParser parser = new JSONParser(); 
+		JSONObject json  = new JSONObject();
+
+ 		try {
+ 			URL url = new URL ("http://localhost:9200/article/_search?pretty");
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Content-Type", "application/json; utf-8");
+			con.setRequestProperty("Accept", "application/json");
+			con.setDoOutput(true);
+			System.out.println(request.toString());
+ 		  String query = "{\"query\":{\"query_string\":{\"query\":\"Climate OR change OR Flooding\",\"default_field\":\"value_of_desc\"}}}";
+ 		
+ 		try(OutputStream os = con.getOutputStream()) {
+ 		    byte[] input = query.getBytes("utf-8");
+ 		    os.write(input, 0, input.length);           
+ 		}
+ 		try(BufferedReader br = new BufferedReader(
+ 				  new InputStreamReader(con.getInputStream(), "utf-8"))) {
+ 				    String responseLine = null;
+ 				    while ((responseLine = br.readLine()) != null) {
+ 				        sbResponse.append(responseLine.trim());
+
+ 				    }
+ 				}
+ 		
+			 json = (JSONObject) parser.parse(sbResponse.toString());
+
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+ 		System.out.println(json.toJSONString());
+ 			return json;
+
+ 		 
+ 		
+ 	}
+
+}

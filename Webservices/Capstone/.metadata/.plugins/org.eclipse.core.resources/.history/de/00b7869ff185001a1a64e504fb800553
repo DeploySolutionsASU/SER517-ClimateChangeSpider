@@ -1,0 +1,152 @@
+package com.deploysolutions.searchApp;
+
+//import static org.elasticsearch.index.query.QueryBuilders.*;
+//
+//import java.io.BufferedReader;
+//import java.io.IOException;
+//import java.io.InputStreamReader;
+//import java.io.OutputStream;
+//import java.io.OutputStreamWriter;
+//import java.net.HttpURLConnection;
+//import java.net.URL;
+//import java.util.ArrayList;
+//import java.util.HashMap;
+//import java.util.Map;
+//
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.script.ScriptType;
+import org.elasticsearch.script.mustache.SearchTemplateRequestBuilder;
+
+
+
+
+
+//
+//import org.apache.http.HttpHost;
+//import org.elasticsearch.action.search.SearchRequest;
+//import org.elasticsearch.action.search.SearchRequestBuilder;
+//import org.elasticsearch.action.search.SearchResponse;
+//import org.elasticsearch.client.Client;
+//import org.elasticsearch.client.Request;
+//import org.elasticsearch.client.RequestOptions;
+//import org.elasticsearch.client.Response;
+//import org.elasticsearch.client.RestClient;
+//import org.elasticsearch.client.transport.TransportClient;
+//import org.elasticsearch.common.settings.Settings;
+//import org.elasticsearch.index.query.QueryBuilder;
+//import org.elasticsearch.index.query.QueryBuilders;
+//import org.elasticsearch.script.ScriptType;
+//import org.elasticsearch.script.mustache.SearchTemplateRequestBuilder;
+//import org.elasticsearch.script.mustache.SearchTemplateResponse;
+//import org.elasticsearch.search.builder.SearchSourceBuilder;
+//import org.elasticsearch.transport.client.PreBuiltTransportClient;
+//import org.json.simple.JSONObject;
+//import org.json.simple.parser.JSONParser;
+
+
+
+@Path("/searchC")
+public class SearchController {
+	
+	@POST
+    @Produces(MediaType.APPLICATION_JSON)
+ 	@Consumes(MediaType.APPLICATION_JSON)
+ 	@Path("/search")
+ 	public  void search(String query)  {
+		
+// 		System.out.println("QUERY ***********      "+query);
+//		StringBuilder sbResponse = new StringBuilder();
+//		
+//		JSONParser parser = new JSONParser(); 
+//		JSONObject json  = new JSONObject();
+//		
+//
+// 		try {
+// 			URL url = new URL ("http://localhost:9200/article/_search?pretty");
+//			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+//			con.setRequestMethod("POST");
+//			con.setRequestProperty("Content-Type", "text/plain");
+//			con.setRequestProperty("Accept", "text/plain");
+//			con.setDoOutput(true);
+//			OutputStream os = con.getOutputStream();
+//			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");    
+//			osw.write(query);
+//			osw.flush();
+//			osw.close();
+//			os.close();  //don't forget to close the OutputStream
+//			con.connect();
+//			
+// 		try(BufferedReader br = new BufferedReader(
+// 				  new InputStreamReader(con.getInputStream(), "utf-8"))) {
+// 				    String responseLine = null;
+// 				    while ((responseLine = br.readLine()) != null) {
+// 				        sbResponse.append(responseLine.trim());
+//
+// 				    }
+// 				}
+// 		
+//			 json = (JSONObject) parser.parse(sbResponse.toString());
+//
+//
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			System.out.println(e.getMessage());
+//			e.printStackTrace();
+//		}
+// 		System.out.println(json.toJSONString());
+// 			return json.toJSONString();
+		
+//		Settings settings = Settings.builder().build();
+//		TransportClient client = new PreBuiltTransportClient(settings);
+//		
+//		Map<String, Object> template_params = new HashMap<>();
+//		template_params.put("param_gender", "(Climate AND Breakdown) OR Flooding OR Flood");
+		
+		/*"{\r\n" + 
+		"    \"query\": {\r\n" + 
+		"        \"query_string\": {\r\n" + 
+		"            \"query\": \"(Climate AND change)(Climate AND Breakdown) OR Flooding OR Flood\",\r\n" + 
+		"            \"default_field\": \"value_of_desc\"\r\n" + 
+		"        }\r\n" + 
+		"    }\r\n" + 
+		"}" */
+//		Settings settings = Settings.builder()
+//		        .put("cluster.name", "my-application").build();
+//		TransportClient client = new PreBuiltTransportClient(settings);
+		
+		Client client = new TransportClient()
+                .addTransportAddress(new InetSocketTransportAddress(
+                        "143.79.236.xxx",
+                        9300));
+		
+		SearchResponse 	sr = new SearchTemplateRequestBuilder(client)
+		        .setScript("{\r\n" + 
+		        		"    \"query\": {\r\n" + 
+		        		"        \"query_string\": {\r\n" + 
+		        		"            \"query\": \"(Climate AND change)(Climate AND Breakdown) OR Flooding OR Flood\",\r\n" + 
+		        		"            \"default_field\": \"value_of_desc\"\r\n" + 
+		        		"        }\r\n" + 
+		        		"    }\r\n" + 
+		        		"}")
+		        .setScriptType(ScriptType.INLINE)    
+		        //.setScriptParams(template_params)    
+		        .setRequest(new SearchRequest())     
+		        .get()                               
+		        .getResponse();
+		System.out.println(sr.toString());
+
+
+}
+
+}

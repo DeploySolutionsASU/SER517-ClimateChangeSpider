@@ -1,0 +1,8 @@
+package com.deploysolutions.searchApp;
+
+import javax.ws.rs.Path;
+
+@Path("search")
+public class SearchControler {
+
+}

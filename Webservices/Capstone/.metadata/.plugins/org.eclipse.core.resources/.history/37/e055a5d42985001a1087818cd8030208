@@ -1,0 +1,51 @@
+package com.deploysolutions.searchApp;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+@Path("/")
+public class SearchController {
+	
+ 	@GET
+    @Produces(MediaType.APPLICATION_JSON)
+ 	@Path("/search")
+ 	public void search(ArrayList<String> keywords) {
+ 		
+ 		try {
+ 			String url = "http://localhost:9200/article/_search?pretty";
+
+ 		    URL obj = new URL(url);
+ 		    HttpURLConnection conn = (HttpURLConnection) obj.openConnection();
+
+ 		    conn.setRequestProperty("Content-Type", "application/json");
+ 		    conn.setDoOutput(true);
+
+ 		    conn.setRequestMethod("POST");
+ 		  String query = "{\"query\":{\"query_string\":{\"query\":\"(Climate AND Breakdown) OR Flooding\",\"default_field\":\"value_of_desc\"}}}";
+// 		 String command = "curl -X POST https://postman-echo.com/post --data foo1=bar1&foo2=bar2";
+// 		Process process = Runtime.getRuntime().exec(command);
+			
+ 		  
+ 		 OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+ 	    out.write(query);
+ 	    out.close();
+
+ 	    new InputStreamReader(conn.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+ 		 
+ 		
+ 	}
+
+}

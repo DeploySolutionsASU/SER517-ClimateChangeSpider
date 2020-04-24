@@ -1,0 +1,63 @@
+package com.deploysolutions.searchApp;
+
+package com.amazonaws.codesamples.document;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableCollection;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
+import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.TableDescription;
+
+public class DocumentAPITableExample {
+
+    static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+    static DynamoDB dynamoDB = new DynamoDB(client);
+
+    static String tableName = "ExampleTable";
+
+    public static void main(String[] args) throws Exception {
+
+        createExampleTable();
+
+    }
+
+    static void createExampleTable() {
+
+        try {
+
+            List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
+            attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType("N"));
+
+            List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+            keySchema.add(new KeySchemaElement().withAttributeName("JobID").withKeyType(KeyType.HASH)); // Partition
+                                                                                                     // key
+
+            CreateTableRequest request = new CreateTableRequest().withTableName(tableName).withKeySchema(keySchema)
+                .withAttributeDefinitions(attributeDefinitions).withProvisionedThroughput(
+                    new ProvisionedThroughput().withReadCapacityUnits(5L).withWriteCapacityUnits(6L));
+
+            System.out.println("Issuing CreateTable request for " + tableName);
+            Table table = dynamoDB.createTable(request);
+
+            System.out.println("Waiting for " + tableName + " to be created...this may take a while...");
+            table.waitForActive();
+
+        }
+        catch (Exception e) {
+            System.err.println("CreateTable request failed for " + tableName);
+            System.err.println(e.getMessage());
+        }
+
+    }
+}
