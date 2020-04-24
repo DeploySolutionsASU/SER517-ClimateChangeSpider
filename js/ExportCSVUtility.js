@@ -1,5 +1,4 @@
 function convertToCSV(objArray) {
-    debugger;
     var csv = "";
     objArray.forEach(function (row) {
         csv += row.join(',');
@@ -13,7 +12,6 @@ function convertToCSV(objArray) {
 
 
 function getRowItems(response) {
-    debugger;
     var resultList = []
     var cols = []
     if(response["hits"] != undefined)
@@ -46,7 +44,6 @@ function getRowItems(response) {
 
 
 function exportCSVFile(items, fileTitle) {
-    debugger;
     if(items.length > 0) {
         var csv = this.convertToCSV(items);
         var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
