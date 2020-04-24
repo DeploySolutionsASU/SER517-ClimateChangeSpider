@@ -338,7 +338,7 @@ function convertJsonToTable(data, searchLevel) {
     const cols_json = data.hits.hits;
 
     for(colum in cols_json[0]["_source"]) {
-        if(colum != "url") {
+        if(colum != "url" && colum != "subject") {
             cols.push(colum);
         }
     }
@@ -369,31 +369,19 @@ function convertJsonToTable(data, searchLevel) {
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-              if (cols[j] != "subject") {
-                 if (cols[j] == "url"){
-                   continue;
-                 }
-                 else if (cols[j] == "title"){
-                    if (list[i]["_source"] != null) {
-                        const content = (list[i]['_source'][cols[j]]);
-                        const url = (list[i]['_source']['subject']);
-                        embedUrlInTitle(cell, content, url);
-                    }
-                 }
-                else if (list[i]["_source"] != null && (list[i]['_source'][cols[j]]) != null) {
+             if (cols[j] == "title"){
+                if (list[i]["_source"] != null) {
                     const content = (list[i]['_source'][cols[j]]);
-                    formatContent(cell, content);
-                } else {
-                    cell.innerHTML = "N/A"
-                }
-            } else {
-                 if (list[i]['_source'][cols[j]]!= null) {
-                     const content = (list[i]['_source'][cols[j]]);
-                     embedUrlInTitle(cell, content, content);
-                } else {
-                    cell.innerHTML = "N/A"
+                    const url = (list[i]['_source']['subject']);
+                    embedUrlInTitle(cell, content, url);
                 }
              }
+            else if (list[i]["_source"] != null && (list[i]['_source'][cols[j]]) != null) {
+                const content = (list[i]['_source'][cols[j]]);
+                formatContent(cell, content);
+            } else {
+                cell.innerHTML = "N/A"
+            }
             cell.style.wordWrap = "break-word"
         }
     }
