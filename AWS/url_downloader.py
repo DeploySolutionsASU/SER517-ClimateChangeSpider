@@ -1,5 +1,44 @@
 import boto3
 import urllib.request
+import json
+import uuid
+
+sqs_q = {
+    "url_q": 'https://sqs.us-east-1.amazonaws.com/967866184802/url_queue',
+    "status_q": 'https://sqs.us-east-1.amazonaws.com/967866184802/status_queue.fifo'
+}
+
+
+def send_message(queue_url, body, q_type="STD"):
+    sqs = boto3.client('sqs')
+    if q_type == "FIFO":
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            DelaySeconds=0,
+            MessageAttributes={},
+            MessageGroupId="status_update",
+
+            MessageBody=(body))
+    else:
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            DelaySeconds=0,
+            MessageAttributes={},
+            MessageBody=(body))
+        print(body, response)
+
+
+def insert_into_db(job_id, url_value):
+    payload = {
+        'Op': 'put_item',
+        'Table': 'FileDownloads',
+        'Item': {
+            'JobID': job_id,
+            "Url": url_value,
+            'FileStatus': 'tobedownloaded'
+        }
+    }
+    send_message(sqs_q["status_q"], json.dumps(payload), "FIFO")
 
 
 def download_file(url):
@@ -7,32 +46,6 @@ def download_file(url):
     data = response.read()
     text = data.decode('utf-8')
     return text
-
-
-def send_sqs_message(url, job_id):
-    # Create SQS client
-    sqs = boto3.client('sqs')
-    queue_url = 'https://sqs.us-east-1.amazonaws.com/967866184802/url_queue'
-
-    # Send message to SQS queue
-    response = sqs.send_message(
-        QueueUrl=queue_url,
-        DelaySeconds=0,
-        MessageAttributes={},
-        MessageBody=('{url},{id}'.format(url=url, id=job_id)))
-    print(response['MessageId'])
-
-
-def insert_into_db(job_id, url_value):
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('FileDownloads')
-    table.put_item(
-        Item={
-            'JobID': job_id,
-            "Url": url_value,
-            'FileStatus': 'tobedownloaded',
-        }
-    )
 
 
 def lambda_handler(event, context):
@@ -54,9 +67,8 @@ def lambda_handler(event, context):
 
     for url in urls:
         values = download_file(url).split("\n")
+        print("Total url count for {alist} is {c}".format(alist=url, c=len(values)))
         for value in values:
             insert_into_db(str(job_id), value)
-            send_sqs_message(value, job_id)
+            send_message(sqs_q["url_q"], '{url},{id}'.format(url=value, id=job_id))
             job_id += 1
-
-
