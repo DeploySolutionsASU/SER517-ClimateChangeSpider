@@ -1,4 +1,5 @@
 function convertToCSV(objArray) {
+    debugger;
     var csv = "";
     objArray.forEach(function (row) {
         csv += row.join(',');
@@ -12,6 +13,7 @@ function convertToCSV(objArray) {
 
 
 function getRowItems(response) {
+    debugger;
     var resultList = []
     var cols = []
     if(response["hits"] != undefined)
@@ -27,7 +29,9 @@ function getRowItems(response) {
         for (let j = 0; j < cols.length; j++) {
                 if (cols_json[i]["_source"] != null) {
                     var r = cols_json[i]['_source'][cols[j]]
-                    currentRow.push(r.replace(/,/g, ';'));
+                    if(r != undefined){
+                        currentRow.push(r.replace(/,/g, ';'));
+                    }
                 } else {
                     currentRow.push("N/A");
                 }
@@ -42,6 +46,7 @@ function getRowItems(response) {
 
 
 function exportCSVFile(items, fileTitle) {
+    debugger;
     if(items.length > 0) {
         var csv = this.convertToCSV(items);
         var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
