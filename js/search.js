@@ -338,12 +338,13 @@ function convertJsonToTable(data, searchLevel) {
     const cols_json = data.hits.hits;
 
     for(colum in cols_json[0]["_source"]) {
-        cols.push(colum);
+        if(colum != "url") {
+            cols.push(colum);
+        }
     }
 
     // Create a table element
     const table = document.createElement("table");
-    // table.class = "collapse";
     table.id = searchLevel;
 
     // Create table row tr element of a table
@@ -352,6 +353,9 @@ function convertJsonToTable(data, searchLevel) {
         // Create the table header th element
         const theader = document.createElement("th");
         theader.innerHTML = formatTableColumn(cols[i]);
+        theader.addEventListener("click", sortTableColumn, false);
+        theader.style.cursor = "pointer";
+
         // Append columnName to the table row
         tr.appendChild(theader);
     }
@@ -365,24 +369,18 @@ function convertJsonToTable(data, searchLevel) {
         for (let j = 0; j < cols.length; j++) {
             const cell = trow.insertCell(-1);
             // Inserting the cell at particular place
-             if (cols[j] != "g") {
-                 debugger;
+              if (cols[j] != "subject") {
                  if (cols[j] == "url"){
-                     debugger;
-                    if (list[i]["_source"] != null) {
-                        const content = (list[i]['_source'][cols[j]]);
-                        addToolTip(cell, content);
-                    } 
+                   continue;
                  }
                  else if (cols[j] == "title"){
-                     debugger;
                     if (list[i]["_source"] != null) {
                         const content = (list[i]['_source'][cols[j]]);
-                        const url = (list[i]['_source']['g']);
+                        const url = (list[i]['_source']['subject']);
                         embedUrlInTitle(cell, content, url);
-                    } 
+                    }
                  }
-                else if (list[i]["_source"] != null) {
+                else if (list[i]["_source"] != null && (list[i]['_source'][cols[j]]) != null) {
                     const content = (list[i]['_source'][cols[j]]);
                     formatContent(cell, content);
                 } else {
@@ -390,12 +388,8 @@ function convertJsonToTable(data, searchLevel) {
                 }
             } else {
                  if (list[i]['_source'][cols[j]]!= null) {
-                    if (j == 0) {
-                        cell.innerHTML = '<a target="_blank" href="' + list[i]['_source'][cols[j]] + '">' + list[i]['_source'][cols[j]] + '</a>';
-                    } else {
-                        const content = formatTableColumn(list[i]['_source'][cols[j]]);
-                        formatContent(cell, content)
-                    }
+                     const content = (list[i]['_source'][cols[j]]);
+                     embedUrlInTitle(cell, content, content);
                 } else {
                     cell.innerHTML = "N/A"
                 }
@@ -457,44 +451,80 @@ function formatTableColumn(columnName) {
 
 function elasticSearchResult(searchLevel, sectionName, keywords) {
     let list_keywords = "";
+    let multi_word = "";
+    let single_word = "";
     keywords.forEach(function (words) {
-        list_keywords += "("+ words + ")" + " OR "
+        let sub_words = words.split(" ");
+        if(sub_words.length > 1) {
+            multi_word += "("
+            for (let i=0;i<sub_words.length;i++) {
+                if(i != sub_words.length - 1) {
+                     multi_word += sub_words[i] + " AND ";
+                } else {
+                     multi_word += sub_words[i] + ")"
+                }
+            }
+        } else {
+            for (let i=0;i<sub_words.length;i++) {
+                 if(multi_word.length > 0) {
+                     single_word += " OR " + sub_words[i];
+                } else {
+                     single_word += " " +sub_words[i];
+                }
+            }
+        }
     })
 
+    list_keywords = multi_word + single_word;
     list_keywords = list_keywords.trim()
-    const data = {
+    console.log(list_keywords);
+    const field_name = "match_keyword";
+    const start = 0;
+    const maxSize = 50;
+    const query_data = {
+        "from": start, "size":maxSize,
         "query": {
             "query_string": {
-                "query": "*"
+                "query": list_keywords,
+                "default_field" : field_name
             }
         }
     };
 
+
     // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
     $.ajax({
       method: "POST",
-      url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
+        url: "https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com/" +searchLevel+"/_search?pretty",
+      //url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
       crossDomain: true,
       async: false,
-      data: JSON.stringify(data),
+      data: JSON.stringify(query_data),
       dataType : 'json',
       contentType: 'application/json',
     })
     .done(function( data ) {
-        if(data.hits.hits.length > 0) {
+        if(data.hits != undefined && data.hits.hits.length > 0) {
             searchResults[searchLevel] = data
-            console.log("Data: " + JSON.stringify(searchResults) + "\nStatus: " + status);
             const table = convertJsonToTable(data, searchLevel);
             table.classList.add("table");
             table.classList.add("collapse");
-
-            if (Object.keys(searchResults).length == selectedLevels.length) {
-                $('.loader').hide();
-                $('#resultBtn').show();
-            }
-            console.log(data);
             databinding(sectionName, searchLevel, data);
             document.getElementById(sectionName).appendChild(table);
+        } else {
+             searchResults[searchLevel] = data
+            const msg = document.createElement("p");
+            msg.innerText = "No data!";
+            msg.id = searchLevel;
+            msg.classList.add("collapse");
+            msg.style.marginLeft = "50%";
+            databinding(sectionName, searchLevel, data);
+            document.getElementById(sectionName).appendChild(msg);
+            }
+
+        if (Object.keys(searchResults).length == selectedLevels.length) {
+                $('.loader').hide();
+                $('#resultBtn').show();
         }
     })
     .fail(function( data ) {
@@ -551,4 +581,67 @@ function toggleClass() {
         return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
             return word.toUpperCase();
         }).replace(/\s+/g, '');
+ }
+
+
+/**
+ * Function to sort the table based on table header
+ */
+function sortTableColumn() {
+        let n = this.cellIndex;
+        let table;
+        let tableId = $(this).parent().parent().parent().attr('id');
+        table = document.getElementById(tableId);
+        let rows, i, x, y, count = 0;
+        let switching = true;
+        let direction = "asc";
+        let noChange = false;
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                var Switch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                if (direction == "asc") {
+                    if (x.innerText.toLowerCase() > y.innerText.toLowerCase())
+                        {
+                        Switch = true;
+                        noChange = true;
+                        break;
+                    }
+                } else if (direction == "desc") {
+                    if (x.innerText.toLowerCase() < y.innerText.toLowerCase())
+                        {
+                        Switch = true;
+                        noChange = true;
+                        break;
+                    }
+                }
+            }
+            if (Switch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                count++;
+            } else {
+                if (count == 0 && direction == "asc") {
+                    direction = "desc";
+                    switching = true;
+                }
+            }
+        }
+
+        if(noChange) {
+            $(this).parent().find('th').removeClass('sort-text-desc');
+            $(this).parent().find('th').removeClass('sort-text-asc');
+
+            if(direction == "asc") {
+                $(this).addClass('sort-text-asc');
+            } else if(direction == "desc") {
+                $(this).addClass('sort-text-desc');
+            }
+        }
  }
