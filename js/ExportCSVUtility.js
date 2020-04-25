@@ -4,23 +4,24 @@ function convertToCSV(objArray) {
         csv += row.join(',');
         csv += "\n";
     });
-    
+
 
     return csv;
 }
-
-
 
 function getRowItems(response) {
     var resultList = []
     var cols = []
     if(response["hits"] != undefined)
     {
-            const cols_json = response["hits"]["hits"]
+        const cols_json = response["hits"]["hits"]
 
-    for (colum in cols_json[0]["_source"]) {
-        cols.push(colum);
-    }
+        if(cols_json.length > 0) {
+         for (colum in cols_json[0]["_source"]) {
+           cols.push(colum);
+         }
+     }
+
     resultList.push(cols)
     for (i = 0; i < cols_json.length; i++) {
         var currentRow = []
@@ -55,5 +56,3 @@ function exportCSVFile(items, fileTitle) {
     }
 
 }
-
-
