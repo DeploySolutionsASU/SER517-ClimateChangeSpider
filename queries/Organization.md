@@ -8,12 +8,13 @@ WHERE {
     FILTER(CONTAINS(lcase(str(?object)), "organization"))
 
     ?subject ?desc ?value_of_desc.
-    OPTIONAL
-    {
-        ?subject <http://rdf.data-vocabulary.org/#url> ?url;
-                 <http://rdf.data-vocabulary.org/#name> ?name;
-                 <http://rdf.data-vocabulary.org/#address> ?address;
-                 <http://rdf.data-vocabulary.org/#tel> ?telephone
+     GRAPH ?g{
+      ?subject <http://opengraphprotocol.org/schema/type> ?object;
+               FILTER(CONTAINS(lcase(str(?object)), "org")).
+    
+    OPTIONAL {
+      ?subject <http://opengraphprotocol.org/schema/language> ?language;
+               FILTER(CONTAINS(lcase(str(?language)), "en")).
     }
   } 
   UNION 		
@@ -33,6 +34,14 @@ WHERE {
                  <http://schema.org.408ss.com/Organization/isBasedOnUrl> ?isBasedOnUrl;
                  <http://schema.org/Organization/description> ?description
     }
+      OPTIONAL
+     {
+        ?subject <http://opengraphprotocol.org/schema/title> ?title;
+                 <http://opengraphprotocol.org/schema/url> ?url;
+                 <http://opengraphprotocol.org/schema/description> ?description;
+                 <http://opengraphprotocol.org/schema/site_name> ?site_name;
+     }
+    
   } 
   UNION
   { 
@@ -52,6 +61,14 @@ WHERE {
                  <http://www.w3.org/2006/vcard/ns#adr> ?address;
             	 <http://www.w3.org/2006/vcard/ns#tel> ?telephone
      }
+       OPTIONAL
+     {
+        ?subject <http://opengraphprotocol.org/schema/title> ?title;
+                 <http://opengraphprotocol.org/schema/url> ?url;
+                 <http://opengraphprotocol.org/schema/description> ?description;
+                 <http://opengraphprotocol.org/schema/site_name> ?site_name;
+     }
+    
   }
   }
  VALUES ?match_keyword { "climate change" "climate breakdown" "flooding" "flood" "sea level rise" "deluge rain event" "ocean solidification" "natural disaster" "winter storm" "drought" "ice storm" "tornado" "hail" "bushfire" "wildfire" "waves" "heat wave" "cold wave" "hurricane" "earthquake" "tsunami" "landslide" "storm surge" "coastal erosion" "ice dam" "permafrost erosion" "permafrost melt" "climate" "climate-change" "climate-breakdown" "sea-level-rise" "deluge-rain-event" "ocean-solidification" "natural-disaster" "winter-storm" "ice-storm" "heat-wave" "cold-wave" "storm-surge" "coastal-erosion" "ice-dam" "permafrost-erosion" "permafrost-melt" }

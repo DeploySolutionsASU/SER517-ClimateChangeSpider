@@ -1,14 +1,14 @@
 PREFIX prefix: <http://prefix.cc/>
 SELECT distinct ?subject ?title ?url ?description ?language ?site_name ?tags ?match_keyword
 WHERE { 
-  GRAPH ?g{
-  { 
-    {
-        ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-		FILTER(CONTAINS(str(?object), "WebSite")) 
-    }
+   GRAPH ?g{
+      ?subject <http://opengraphprotocol.org/schema/type> ?object;
+               FILTER(CONTAINS(lcase(str(?object)), "website")).
     
-  } 
+    OPTIONAL {
+      ?subject <http://opengraphprotocol.org/schema/language> ?language;
+               FILTER(CONTAINS(lcase(str(?language)), "en")).
+    }
   UNION
   {
     {
