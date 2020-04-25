@@ -5,9 +5,33 @@ import urllib.request
 from io import BytesIO
 
 import boto3
+import uuid
 import time
 from botocore.exceptions import ClientError
 from pip._internal.utils import logging
+
+sqs_q = {
+    "url_q": 'https://sqs.us-east-1.amazonaws.com/967866184802/url_queue',
+    "status_q": 'https://sqs.us-east-1.amazonaws.com/967866184802/status_queue.fifo'
+}
+
+
+def send_message(queue_url, body, q_type="STD"):
+    sqs = boto3.client('sqs')
+    if q_type == "FIFO":
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            DelaySeconds=0,
+            MessageAttributes={},
+            MessageGroupId="status_update",
+            MessageDeduplicationId=str(uuid.uuid4()),
+            MessageBody=(body))
+    else:
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            DelaySeconds=0,
+            MessageAttributes={},
+            MessageBody=(body))
 
 
 def download_file(url, output_path):
@@ -50,26 +74,33 @@ def upload_file_to_s3(file_name, bucket, object_name=None):
 
 
 def update_job_status(job_id, job_status):
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('FileDownloads')
-    table.update_item(
-        Key={
+    payload = {
+        'Op': 'update_item',
+        'Table': 'FileDownloads',
+        'Key': {
             'JobID': job_id,
         },
-        UpdateExpression='SET FileStatus = :status',
-        ExpressionAttributeValues={
+        'UpdateExpression': 'SET FileStatus = :status',
+        'ExpressionAttributeValues': {
             ':status': job_status
         }
+    }
+    send_message(sqs_q["status_q"], json.dumps(payload), "FIFO")
+
+
+def delete_msg(receipt_handle):
+    client = boto3.client('sqs', region_name='us-east-1')
+    response = client.delete_message(
+        QueueUrl=sqs_q["url_q"],
+        ReceiptHandle=receipt_handle
     )
-    print("updated the job status as ", job_status)
+    print(response)
 
 
 def lambda_handler(event, context):
-    # # source_file_name = event["Records"][0]["s3"]["object"]["key"]
-    # print(event,"\n", context)
-    # return
-
+    print(event)
     splits = event["Records"][0]["body"].split(",")
+
     url = splits[0]
     key = splits[1]
 
@@ -79,6 +110,7 @@ def lambda_handler(event, context):
 
     download_file(url, file_path)
     upload_file_to_s3(file_path, "climatechange-downloads", key + ".nq")
+    delete_msg(event["Records"][0]["receiptHandle"])
     update_job_status(key, "downloaded")
 
 

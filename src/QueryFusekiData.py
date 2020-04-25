@@ -1,9 +1,11 @@
 import json
 import sys
+import os
+import shutil
 
 from requests import post as POST
 
-#from ElasticSearchManager import create_bulk_index
+# from ElasticSearchManager import create_bulk_index
 from ElasticSearchManager import create_bulk_index
 
 default_headers = {"Content-Type": "application/json"}
@@ -40,6 +42,23 @@ def string_to_json(response_str):
         print("JsonParsing Error: ", error, file=sys.stderr)
 
 
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            print("Success")
+    except OSError:
+        print('Error: Creating directory. ' + directory)
+
+
+def removeFile(path):
+    try:
+        os.remove(path)
+        print("File removed")
+    except FileNotFoundError as exception_object:
+        print(exception_object)
+
+
 def generate_result(data_set):
     url = build_url(data_set=data_set)
     query_types = ['Article', 'Organization', 'Event', 'Website']
@@ -63,24 +82,27 @@ def generate_result(data_set):
 
         # Adding indexes to query response
         for line in range(0, end):
-            test =  '{ "index" : { "_index" : "'+val.lower()+'", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
+            test = '{ "index" : { "_index" : "' + val.lower() + '", "_type" : "_doc", "_id" : "' + str(id) + '" } }\n'
             for i in entry[line]:
                 kval = entry[line][i]["value"]
                 processed_entry[i] = kval
             temp_entry += test + json.dumps(processed_entry) + '\n'
-            id +=1
+            id += 1
 
             # Write every 100 line to a new json file to send it as an input to elastic search
             if line % 100 == 0 or line == end - 1:
-                file_name = val+str(id)+'.json'
-                outfile = open(file_name, "w")
+                createFolder('./importData/')
+                file_name = val + str(id) + '.json'
+                file_path = os.path.join('./importData/', file_name)
+                outfile = open(file_path, "w")
                 outfile.write(temp_entry)
                 temp_entry = ""
                 processed_entry = {}
                 outfile.close()
-                create_bulk_index(val.lower(), file_name)
-
-
+                create_bulk_index(val.lower(), file_path)
+                removeFile(file_path)
+    
+    shutil.rmtree('./importData/', ignore_errors=True)
 
 
 article = """PREFIX prefix: <http://prefix.cc/>
@@ -159,7 +181,9 @@ WHERE {
   FILTER(CONTAINS(str(?value_of_desc), "environment") || CONTAINS(str(?value_of_desc), "climate") || CONTAINS(str(?value_of_desc), "weather") || CONTAINS(str(?value_of_desc), "flood") || CONTAINS(str(?value_of_desc), "fire"))
   FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
   FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
-}"""
+}
+LIMIT 500
+"""
 
 organization = """
 PREFIX prefix: <http://prefix.cc/>
@@ -253,7 +277,7 @@ WHERE {
  FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
  FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
 }
-LIMIT 2000
+LIMIT 500
 """
 
 event = """SELECT DISTINCT ?g ?name ?url (CONCAT(?street_address, ", " ,?addressRegion, ", " ,?locality, ", " ,?country ) AS ?some) ?value_of_desc
@@ -298,7 +322,7 @@ WHERE
   FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
   FILTER(CONTAINS(str(?g), "fire") || CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "climate"))
 }
-LIMIT 2000
+LIMIT 500
 
 """
 
@@ -346,10 +370,8 @@ WHERE {
   FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
   FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
 }
-LIMIT 2000
+LIMIT 500
 """
-
-
 
 if __name__ == '__main__':
     generate_result('test_data_set')

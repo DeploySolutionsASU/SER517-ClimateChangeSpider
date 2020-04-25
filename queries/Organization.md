@@ -1,37 +1,27 @@
 PREFIX prefix: <http://prefix.cc/>
-SELECT distinct ?g ?url ?name ?address ?telephone ?sameAs ?Logo ?isBasedOnUrl ?description ?value_of_desc
+SELECT distinct ?subject ?title ?url ?description ?language ?site_name ?tags ?match_keyword
 WHERE { 
   GRAPH ?g{
   {
-    { 
-        ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-        FILTER(CONTAINS(str(?object), "Organization")) 
-    }
-    UNION
-    {
-    	?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-        FILTER(CONTAINS(lcase(str(?object)), "organization"))
-    }	
+    
+    ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
+    FILTER(CONTAINS(lcase(str(?object)), "organization"))
+
     ?subject ?desc ?value_of_desc.
-    OPTIONAL
-    {
-        ?subject <http://rdf.data-vocabulary.org/#url> ?url;
-                 <http://rdf.data-vocabulary.org/#name> ?name;
-                 <http://rdf.data-vocabulary.org/#address> ?address;
-                 <http://rdf.data-vocabulary.org/#tel> ?telephone
+     GRAPH ?g{
+      ?subject <http://opengraphprotocol.org/schema/type> ?object;
+               FILTER(CONTAINS(lcase(str(?object)), "org")).
+    
+    OPTIONAL {
+      ?subject <http://opengraphprotocol.org/schema/language> ?language;
+               FILTER(CONTAINS(lcase(str(?language)), "en")).
     }
   } 
   UNION 		
   { 
-    {
-        ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-        FILTER(CONTAINS(str(?object), "Organization")) 
-    }
-    UNION
-    {
+   
     	?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
         FILTER(CONTAINS(lcase(str(?object)), "organization"))
-    }	
     ?subject ?desc ?value_of_desc.
     OPTIONAL
     {
@@ -44,27 +34,15 @@ WHERE {
                  <http://schema.org.408ss.com/Organization/isBasedOnUrl> ?isBasedOnUrl;
                  <http://schema.org/Organization/description> ?description
     }
+      OPTIONAL
+     {
+        ?subject <http://opengraphprotocol.org/schema/title> ?title;
+                 <http://opengraphprotocol.org/schema/url> ?url;
+                 <http://opengraphprotocol.org/schema/description> ?description;
+                 <http://opengraphprotocol.org/schema/site_name> ?site_name;
+     }
+    
   } 
-  UNION
-  { 
-    {
-        ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-        FILTER(CONTAINS(str(?object), "Organization")) 
-    }
-    UNION
-    {
-    	?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?object;
-        FILTER(CONTAINS(lcase(str(?object)), "organization"))
-    }	
-    ?subject ?desc ?value_of_desc.
-    OPTIONAL
-    {
-        ?subject <http://schema.org/#url> ?url;
-                 <http://schema.org/#name> ?name;
-                 <http://schema.org/#address> ?address;
-                 <http://schema.org/#tel> ?telephone
-    }
-  }
   UNION
   { 
     {
@@ -83,10 +61,17 @@ WHERE {
                  <http://www.w3.org/2006/vcard/ns#adr> ?address;
             	 <http://www.w3.org/2006/vcard/ns#tel> ?telephone
      }
+       OPTIONAL
+     {
+        ?subject <http://opengraphprotocol.org/schema/title> ?title;
+                 <http://opengraphprotocol.org/schema/url> ?url;
+                 <http://opengraphprotocol.org/schema/description> ?description;
+                 <http://opengraphprotocol.org/schema/site_name> ?site_name;
+     }
+    
   }
   }
- FILTER(CONTAINS(str(?value_of_desc), "environment") || CONTAINS(str(?value_of_desc), "climate") || CONTAINS(str(?value_of_desc), "weather") || CONTAINS(str(?value_of_desc), "flood") || CONTAINS(str(?value_of_desc), "fire"))
- FILTER ((lang(?value_of_desc)= "en") ||lang(?value_of_desc)="en-US" || lang(?value_of_desc)="")
- FILTER(CONTAINS(str(?g), "environment") || CONTAINS(str(?g), "climate") || CONTAINS(str(?g), "weather") || CONTAINS(str(?g), "flood") || CONTAINS(str(?g), "fire"))
+ VALUES ?match_keyword { "climate change" "climate breakdown" "flooding" "flood" "sea level rise" "deluge rain event" "ocean solidification" "natural disaster" "winter storm" "drought" "ice storm" "tornado" "hail" "bushfire" "wildfire" "waves" "heat wave" "cold wave" "hurricane" "earthquake" "tsunami" "landslide" "storm surge" "coastal erosion" "ice dam" "permafrost erosion" "permafrost melt" "climate" "climate-change" "climate-breakdown" "sea-level-rise" "deluge-rain-event" "ocean-solidification" "natural-disaster" "winter-storm" "ice-storm" "heat-wave" "cold-wave" "storm-surge" "coastal-erosion" "ice-dam" "permafrost-erosion" "permafrost-melt" }
+    
+    FILTER(CONTAINS(lcase(str(?tags)),  ?match_keyword) || CONTAINS(lcase(str(?description)),  ?match_keyword)).
 }
-LIMIT 2000
