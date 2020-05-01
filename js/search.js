@@ -189,7 +189,7 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
             multi_word += "("
             for (let i=0;i<sub_words.length;i++) {
                 if(i != sub_words.length - 1) {
-                     multi_word += sub_words[i] + " OR ";
+                     multi_word += sub_words[i] + " AND ";
                 } else {
                      multi_word += sub_words[i] + ")"
                 }
