@@ -221,14 +221,19 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
     };
 
 
+
+
+
     $.ajax({
-        method: "POST",
-        url : "http://18.191.69.111:8080/searchApp/searchC/search"+"?searchLevel="+searchLevel,
-        crossDomain: true,
-        async: true,
-        data: JSON.stringify(query_data),
-        dataType : 'json',
-        contentType: 'application/json',
+      method: "POST",
+
+        url : "http://18.191.69.111:8080/search-management/results"+"?searchLevel="+searchLevel,
+
+      crossDomain: true,
+      async: true,
+      data: JSON.stringify(query_data),
+      dataType : 'json',
+      contentType: 'application/json',
     }).progress(function() {
         $('.loader').show();
     })
