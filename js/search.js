@@ -189,7 +189,7 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
             multi_word += "("
             for (let i=0;i<sub_words.length;i++) {
                 if(i != sub_words.length - 1) {
-                     multi_word += sub_words[i] + " AND ";
+                     multi_word += sub_words[i] + " OR ";
                 } else {
                      multi_word += sub_words[i] + ")"
                 }
@@ -220,17 +220,15 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
         }
     };
 
-    // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
-    // Local host url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
+
     $.ajax({
-      method: "POST",
-      url: "https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com/"
-          +searchLevel+"/_search?pretty",
-      crossDomain: true,
-      async: true,
-      data: JSON.stringify(query_data),
-      dataType : 'json',
-      contentType: 'application/json',
+        method: "POST",
+        url : "http://18.191.69.111:8080/searchApp/searchC/search"+"?searchLevel="+searchLevel,
+        crossDomain: true,
+        async: true,
+        data: JSON.stringify(query_data),
+        dataType : 'json',
+        contentType: 'application/json',
     }).progress(function() {
         $('.loader').show();
     })
