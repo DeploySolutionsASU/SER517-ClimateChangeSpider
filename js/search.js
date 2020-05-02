@@ -220,15 +220,10 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
         }
     };
 
-
-
-
-
+    // Update the URL based on EC2 instance address
     $.ajax({
       method: "POST",
-
-        url : "http://18.191.69.111:8080/search-management/results"+"?searchLevel="+searchLevel,
-
+      url : "http://18.191.69.111:8080/search-management/results"+"?searchLevel="+searchLevel,
       crossDomain: true,
       async: true,
       data: JSON.stringify(query_data),
