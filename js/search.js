@@ -220,12 +220,10 @@ function elasticSearchResult(searchLevel, sectionName, keywords) {
         }
     };
 
-    // AWS URL: https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com
-    // Local host url: "http://localhost:9200/"+searchLevel+"/_search?pretty",
+    // Update the URL based on EC2 instance address
     $.ajax({
       method: "POST",
-      url: "https://search-cc14-prototype-s5q5rjhkogrxzrmfzutzt4umnm.ca-central-1.es.amazonaws.com/"
-          +searchLevel+"/_search?pretty",
+      url : "http://18.191.69.111:8080/search-management/results"+"?searchLevel="+searchLevel,
       crossDomain: true,
       async: true,
       data: JSON.stringify(query_data),

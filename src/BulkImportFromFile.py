@@ -3,8 +3,8 @@ import json
 from ElasticSearchManager import create_bulk_index
 
 if __name__ == '__main__':
-    file_name = 'aresult.json'
-    val = 'article'
+    file_name = 'FILE_NAME.json'
+    val = 'INDEX_NAME'
     temp_entry = ''
     id = 1
     processed_entry = {}
@@ -22,13 +22,12 @@ if __name__ == '__main__':
         id += 1
 
         # Write every 200 line to a new json file to send it as an input to elastic search
-        # Testing with first 1000 data to AWS Elastic search
-        if line < 1000:
-            if (line != 0 and line % 200 == 0) or line == end - 1:
-                file_name = val + str(id) + '.json'
-                outfile = open(file_name, "w")
-                outfile.write(temp_entry)
-                temp_entry = ""
-                processed_entry = {}
-                outfile.close()
-                create_bulk_index(val.lower(), file_name)
+
+        if (line != 0 and line % 200 == 0) or line == end - 1:
+            file_name = val + str(id) + '.json'
+            outfile = open(file_name, "w")
+            outfile.write(temp_entry)
+            temp_entry = ""
+            processed_entry = {}
+            outfile.close()
+            create_bulk_index(val.lower(), file_name)
